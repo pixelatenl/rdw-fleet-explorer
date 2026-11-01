@@ -137,11 +137,12 @@ export default function Home() {
               Average mass and engine size of passenger cars by the year
               they were first registered in the Netherlands. Engines
               shrank for four decades while cars grew heavier; both trends
-              bend around 2017 to 2020, where electrification arrives. The
-              most recent cohort is a partial year. Average mass covers
-              all passenger cars, electric ones included. Engine size
-              covers only the cars that have an engine, because electric
-              vehicles have no cylinder capacity.
+              bend around{" "}
+              <span className="text-brand-accent">2017 to 2020</span>, where
+              electrification arrives. The most recent cohort is a partial
+              year. Average mass covers all passenger cars, electric ones
+              included. Engine size covers only the cars that have an
+              engine, because electric vehicles have no cylinder capacity.
             </CardDescription>
           </CardHeader>
           <CardContent>
