@@ -51,8 +51,7 @@ export default function Home() {
         <p className="mt-4 max-w-5xl text-lg text-muted-foreground">
           Live aggregates from the complete RDW vehicle register, more than{" "}
           {formatNumber(snapshot.totals.vehicles)} vehicles, refreshed
-          weekly and rendered straight into this page. This is the first
-          product in Pixelate&apos;s Open Data Project.
+          weekly and rendered straight into this page.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           Data received on {formatDate(snapshot.retrievedAt)}.
@@ -263,36 +262,6 @@ export default function Home() {
                   Unsplash
                 </a>
                 .
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">What is next</CardTitle>
-            <CardDescription>
-              Version one establishes the product pipeline. The next versions
-              add depth and correlation.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-              <li>
-                A per-year electric adoption series, built from a joined
-                ingest of registration dates and drivetrains.
-              </li>
-              <li>
-                Regional views: electrification per province and municipality,
-                correlated with CBS context such as income and housing stock.
-                Municipality-level figures will carry the known attribution
-                caveat for lease and business vehicles.
-              </li>
-              <li>
-                A launcher website for the Open Data Project, connecting all
-                products, sharing this theme and the same family header.
               </li>
             </ul>
           </CardContent>
