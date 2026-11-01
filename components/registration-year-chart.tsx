@@ -55,7 +55,7 @@ export function RegistrationYearChart() {
         viewBox={`0 0 ${chartWidth} ${svgHeight}`}
         className="h-auto w-full"
         role="img"
-        aria-label={`Bar chart of vehicles currently registered in the Netherlands by year of first Dutch registration, from ${firstYear} to ${lastYear}. The largest year is ${largest.year} with ${formatNumber(largest.count)} vehicles.`}
+        aria-label={`Bar chart of vehicles currently registered in the Netherlands by year of first Dutch registration, from ${firstYear} to ${lastYear}, where the last year is a partial count. The largest year is ${largest.year} with ${formatNumber(largest.count)} vehicles.`}
       >
         <defs>
           <linearGradient id="registration-year-recent" x1="0" y1="0" x2="0" y2="1">
@@ -88,7 +88,14 @@ export function RegistrationYearChart() {
                       ? "url(#registration-year-recent)"
                       : "url(#registration-year-older)"
                   }
-                  opacity={row.year >= 2020 ? 1 : 0.75}
+                  opacity={
+                    row.year === lastYear
+                      ? // The latest cohort is still filling up.
+                        0.55
+                      : row.year >= 2020
+                        ? 1
+                        : 0.75
+                  }
                 />
               )}
             </ChartTooltip>
