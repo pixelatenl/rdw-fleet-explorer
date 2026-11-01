@@ -47,22 +47,71 @@ const electricClassByKey = {
   "ovc-fchv": { key: "fchv", label: "Fuel cell hybrid" },
 };
 
-const vehicleTypeLabelByKey = {
-  "personenauto": "Passenger car",
-  "bedrijfsauto": "Van",
-  "bromfiets": "Moped",
-  "motorfiets": "Motorcycle",
-  "aanhangwagen": "Trailer",
-  "middenasaanhangwagen": "Centre-axle trailer",
-  "land- of bosbouwtrekker": "Agricultural tractor",
-  "land- of bosb aanhw of getr uitr stuk": "Agricultural trailer or equipment",
-  "oplegger": "Semi-trailer",
-  "motorrijtuig met beperkte snelheid": "Slow-moving vehicle",
-  "driewielig motorrijtuig": "Three-wheeled vehicle",
-  "mobiele machine": "Mobile machine",
-  "bus": "Bus",
-  "autonome aanhangwagen": "Autonomous trailer",
-  "motorfiets met zijspan": "Motorcycle with sidecar",
+/*
+  Snapshot JSON formatter. Keeps the committed format stable: two-space
+  indentation, with every entry of a flat-object array on a single line
+  so adding a series does not reformat the whole file.
+*/
+function isFlat(value) {
+  if (value === null || Array.isArray(value)) return true;
+  if (typeof value !== "object") return true;
+  return Object.values(value).every(
+    (child) => child === null || typeof child !== "object",
+  );
+}
+
+function formatEntry(entry) {
+  const fields = Object.entries(entry)
+    .map(([key, value]) => `${JSON.stringify(key)}: ${JSON.stringify(value)}`)
+    .join(", ");
+  return `{ ${fields} }`;
+}
+
+function pretty(value, level) {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+  const pad = "  ".repeat(level);
+  const inner = "  ".repeat(level + 1);
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "[]";
+    if (value.every((entry) => entry !== null && typeof entry === "object" && isFlat(entry))) {
+      const items = value.map((entry) => inner + formatEntry(entry)).join(",\n");
+      return `[\n${items}\n${pad}]`;
+    }
+    const items = value
+      .map((entry) => inner + pretty(entry, level + 1))
+      .join(",\n");
+    return `[\n${items}\n${pad}]`;
+  }
+  const fields = Object.entries(value)
+    .map(([key, child]) => `${inner}${JSON.stringify(key)}: ${pretty(child, level + 1)}`)
+    .join(",\n");
+  return `{\n${fields}\n${pad}}`;
+}
+
+/*
+  Vehicle type entries keyed by the raw (capitalized) RDW voertuigsoort
+  value, carrying the exact key and label the site and committed snapshot
+  use, so regeneration is byte-stable. Unknown types fall back to a
+  slugified raw value.
+*/
+const vehicleTypeByKey = {
+  "Personenauto": { key: "personenauto", label: "Passenger car" },
+  "Bedrijfsauto": { key: "bedrijfsauto", label: "Van" },
+  "Bromfiets": { key: "bromfiets", label: "Moped" },
+  "Motorfiets": { key: "motorfiets", label: "Motorcycle" },
+  "Aanhangwagen": { key: "aanhangwagen", label: "Trailer" },
+  "Middenasaanhangwagen": { key: "middenasaanhangwagen", label: "Centre-axle trailer" },
+  "Land- of bosbouwtrekker": { key: "land-bosbouwtrekker", label: "Agricultural tractor" },
+  "Land- of bosb aanhw of getr uitr stuk": { key: "land-bosb-aanhangwagen", label: "Agricultural trailer or equipment" },
+  "Oplegger": { key: "oplegger", label: "Semi-trailer" },
+  "Motorrijtuig met beperkte snelheid": { key: "beperkte-snelheid", label: "Slow-moving vehicle" },
+  "Driewielig motorrijtuig": { key: "driewielig", label: "Three-wheeled vehicle" },
+  "Mobiele machine": { key: "mobiele-machine", label: "Mobile machine" },
+  "Bus": { key: "bus", label: "Bus" },
+  "Autonome aanhangwagen": { key: "autonome-aanhangwagen", label: "Autonomous trailer" },
+  "Motorfiets met zijspan": { key: "motorfiets-zijspron", label: "Motorcycle with sidecar" },
 };
 
 async function main() {
@@ -72,6 +121,9 @@ async function main() {
     vehicleTypes,
     registrationYearsRaw,
     fuelTotals,
+    massByYearRaw,
+    engineSizeByYearRaw,
+    fuelCellRaw,
   ] = await Promise.all([
     query(
       DATASET_FUEL,
@@ -93,6 +145,35 @@ async function main() {
       DATASET_FUEL,
       "select count(1) as rows, count(distinct kenteken) as vehicles"
     ),
+    // Average mass by first admission year, passenger cars from 1975 on.
+    // date_extract_y requires the _dt column variant; avg() ignores nulls
+    // on its own, so count(1) covers every car of the cohort while the
+    // average covers only cars with a recorded massa_ledig_voertuig.
+    query(
+      DATASET_BASE,
+      "select date_extract_y(datum_eerste_toelating_dt) as year, avg(massa_ledig_voertuig) as avg_mass, count(1) as n " +
+        "where voertuigsoort='Personenauto' and datum_eerste_toelating_dt >= '1975-01-01' " +
+        "group by year order by year limit 200"
+    ),
+    // Average engine size by the same first admission year. SoQL has no
+    // IS NULL; avg(cilinderinhoud) and count(cilinderinhoud) skip cars
+    // without a recorded value, so n_cc exposes how much of the cohort
+    // the engine-size average actually covers.
+    query(
+      DATASET_BASE,
+      "select date_extract_y(datum_eerste_toelating_dt) as year, avg(cilinderinhoud) as avg_cc, count(cilinderinhoud) as n_cc, count(1) as n " +
+        "where voertuigsoort='Personenauto' and datum_eerste_toelating_dt >= '1975-01-01' " +
+        "group by year order by year limit 200"
+    ),
+    // Fuel cell coverage: distinct vehicles per recorded fuel over the
+    // fuel cell hybrid classes. The class values are uppercase in the
+    // register, so the where clause matches them literally.
+    query(
+      DATASET_FUEL,
+      "select brandstof_omschrijving, count(distinct kenteken) as vehicles " +
+        "where klasse_hybride_elektrisch_voertuig in ('NOVC-FCHV','OVC-FCHV') " +
+        "group by brandstof_omschrijving order by vehicles desc"
+    ),
   ]);
 
   const vehicles = await query(
@@ -108,6 +189,18 @@ async function main() {
       (row.brandstof_omschrijving ?? "Unknown"),
     count: Number(row.aantal),
   }));
+
+  // Fuel cell coverage per recorded fuel, keyed and labelled like the
+  // fuel registrations; unlabelled rows are kept as Unknown.
+  const fuelCellByFuel = fuelCellRaw
+    .map((row) => ({
+      key: (row.brandstof_omschrijving ?? "onbekend").toLowerCase(),
+      label:
+        fuelLabelByKey[(row.brandstof_omschrijving ?? "").toLowerCase()] ??
+        (row.brandstof_omschrijving ?? "Unknown"),
+      count: Number(row.vehicles),
+    }))
+    .sort((a, b) => b.count - a.count);
 
   // Electric split; rows without a hybrid class are battery electric.
   const splitByClass = new Map();
@@ -141,18 +234,20 @@ async function main() {
     }))
     .sort((a, b) => b.count - a.count);
 
-  const typesByLabel = new Map();
+  const typesByKey = new Map();
   for (const row of vehicleTypes) {
-    const label = vehicleTypeLabelByKey[row.voertuigsoort] ?? row.voertuigsoort;
-    typesByLabel.set(label, (typesByLabel.get(label) ?? 0) + Number(row.aantal));
+    const type = row.voertuigsoort ?? "";
+    const known = vehicleTypeByKey[type];
+    const key = known?.key ?? type.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    typesByKey.set(key, {
+      key,
+      label: known?.label ?? type,
+      count: (typesByKey.get(key)?.count ?? 0) + Number(row.aantal),
+    });
   }
-  const vehicleTypesList = [...typesByLabel.entries()]
-    .map(([label, count]) => ({
-      key: label.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      label,
-      count,
-    }))
-    .sort((a, b) => b.count - a.count);
+  const vehicleTypesList = [...typesByKey.values()].sort(
+    (a, b) => b.count - a.count
+  );
 
   const registrationYears = [];
   let registrationYearsUnknown = 0;
@@ -163,6 +258,49 @@ async function main() {
       registrationYears.push({ year: Number(row.jaar), count: Number(row.aantal) });
     }
   }
+
+  /*
+    Heavy turn: average mass and engine size per first-admission-year
+    cohort of passenger cars, merged on year. Both queries share the
+    same where clause, so their counts match per year and the two
+    arrays carry the same merged rows; each panel of the visual reads
+    its own array so the series stay independently consumable.
+  */
+  const MIN_COHORT = 1000;
+  const massByYearMap = new Map();
+  for (const row of massByYearRaw) {
+    if (row.year == null || Number(row.n) < MIN_COHORT) continue;
+    massByYearMap.set(Number(row.year), {
+      avgMass: Math.round(Number(row.avg_mass)),
+      count: Number(row.n),
+    });
+  }
+  const engineSizeByYearMap = new Map();
+  for (const row of engineSizeByYearRaw) {
+    if (row.year == null || Number(row.n) < MIN_COHORT) continue;
+    engineSizeByYearMap.set(Number(row.year), {
+      avgEngineSize: Math.round(Number(row.avg_cc)),
+      // Cars of the cohort with a recorded cilinderinhoud; electric
+      // vehicles have none, so this is the base of the engine average.
+      withEngine: Number(row.n_cc),
+    });
+  }
+  const heavyTurnCohorts = [...massByYearMap.entries()]
+    .filter(([year]) => engineSizeByYearMap.has(year))
+    .map(([year, { avgMass, count }]) => {
+      const engine = engineSizeByYearMap.get(year);
+      return { year, avgMass, avgEngineSize: engine.avgEngineSize, count };
+    });
+  const massByYear = heavyTurnCohorts.map(({ year, avgMass, avgEngineSize, count }) => ({
+    year,
+    avgMass,
+    avgEngineSize,
+    count,
+  }));
+  const engineSizeByYear = heavyTurnCohorts.map((cohort) => ({
+    ...cohort,
+    withEngine: engineSizeByYearMap.get(cohort.year).withEngine,
+  }));
 
   const snapshot = {
     retrievedAt: new Date().toISOString().slice(0, 10),
@@ -179,9 +317,12 @@ async function main() {
     },
     fuelRegistrations,
     electricSplit,
+    fuelCellByFuel,
     vehicleTypes: vehicleTypesList,
     registrationYears,
     registrationYearsUnknown,
+    massByYear,
+    engineSizeByYear,
   };
 
   const dir = path.join(
@@ -192,7 +333,7 @@ async function main() {
   );
   await mkdir(dir, { recursive: true });
   const target = path.join(dir, "snapshot.json");
-  await writeFile(target, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+  await writeFile(target, `${pretty(snapshot, 0)}\n`, "utf8");
 
   const electricTotal = electricSplit.reduce((sum, e) => sum + e.count, 0);
   console.log(

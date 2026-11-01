@@ -11,6 +11,15 @@ export interface YearCount {
   count: number;
 }
 
+export interface HeavyTurnYear {
+  year: number;
+  avgMass: number;
+  avgEngineSize: number;
+  count: number;
+  /** Cars with a recorded cilinderinhoud; only engineSizeByYear rows carry it. */
+  withEngine?: number;
+}
+
 export interface Snapshot {
   retrievedAt: string;
   source: {
@@ -26,9 +35,12 @@ export interface Snapshot {
   };
   fuelRegistrations: LabeledCount[];
   electricSplit: LabeledCount[];
+  fuelCellByFuel: LabeledCount[];
   vehicleTypes: LabeledCount[];
   registrationYears: YearCount[];
   registrationYearsUnknown: number;
+  massByYear: HeavyTurnYear[];
+  engineSizeByYear: HeavyTurnYear[];
 }
 
 export const snapshot = raw as Snapshot;
