@@ -155,10 +155,12 @@ async function main() {
         "group by year order by year limit 200"
     ),
     // Average engine size by the same first admission year. SoQL has no
-    // IS NULL; avg(cilinderinhoud) skips cars without a recorded value.
+    // IS NULL; avg(cilinderinhoud) and count(cilinderinhoud) skip cars
+    // without a recorded value, so n_cc exposes how much of the cohort
+    // the engine-size average actually covers.
     query(
       DATASET_BASE,
-      "select date_extract_y(datum_eerste_toelating_dt) as year, avg(cilinderinhoud) as avg_cc, count(1) as n " +
+      "select date_extract_y(datum_eerste_toelating_dt) as year, avg(cilinderinhoud) as avg_cc, count(cilinderinhoud) as n_cc, count(1) as n " +
         "where voertuigsoort='Personenauto' and datum_eerste_toelating_dt >= '1975-01-01' " +
         "group by year order by year limit 200"
     ),
@@ -244,7 +246,6 @@ async function main() {
   */
   const MIN_COHORT = 1000;
   const massByYearMap = new Map();
-  const engineSizeByYearMap = new Map();
   for (const row of massByYearRaw) {
     if (row.year == null || Number(row.n) < MIN_COHORT) continue;
     massByYearMap.set(Number(row.year), {
@@ -252,20 +253,32 @@ async function main() {
       count: Number(row.n),
     });
   }
+  const engineSizeByYearMap = new Map();
   for (const row of engineSizeByYearRaw) {
     if (row.year == null || Number(row.n) < MIN_COHORT) continue;
-    engineSizeByYearMap.set(Number(row.year), Math.round(Number(row.avg_cc)));
+    engineSizeByYearMap.set(Number(row.year), {
+      avgEngineSize: Math.round(Number(row.avg_cc)),
+      // Cars of the cohort with a recorded cilinderinhoud; electric
+      // vehicles have none, so this is the base of the engine average.
+      withEngine: Number(row.n_cc),
+    });
   }
   const heavyTurnCohorts = [...massByYearMap.entries()]
     .filter(([year]) => engineSizeByYearMap.has(year))
-    .map(([year, { avgMass, count }]) => ({
-      year,
-      avgMass,
-      avgEngineSize: engineSizeByYearMap.get(year),
-      count,
-    }));
-  const massByYear = heavyTurnCohorts;
-  const engineSizeByYear = heavyTurnCohorts;
+    .map(([year, { avgMass, count }]) => {
+      const engine = engineSizeByYearMap.get(year);
+      return { year, avgMass, avgEngineSize: engine.avgEngineSize, count };
+    });
+  const massByYear = heavyTurnCohorts.map(({ year, avgMass, avgEngineSize, count }) => ({
+    year,
+    avgMass,
+    avgEngineSize,
+    count,
+  }));
+  const engineSizeByYear = heavyTurnCohorts.map((cohort) => ({
+    ...cohort,
+    withEngine: engineSizeByYearMap.get(cohort.year).withEngine,
+  }));
 
   const snapshot = {
     retrievedAt: new Date().toISOString().slice(0, 10),

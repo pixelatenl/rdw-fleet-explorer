@@ -14,6 +14,9 @@ import { HeavyTurnChart } from "@/components/heavy-turn-chart";
 import { snapshot, formatNumber, formatDate } from "@/data/snapshot";
 
 export default function Home() {
+  const latestCohort =
+    snapshot.engineSizeByYear[snapshot.engineSizeByYear.length - 1];
+
   const datasetJsonLd = {
     "@context": "https://schema.org",
     "@type": "Dataset",
@@ -133,14 +136,20 @@ export default function Home() {
               they were first registered in the Netherlands. Engines
               shrank for four decades while cars grew heavier; both trends
               bend around 2017 to 2020, where electrification arrives. The
-              most recent cohort is a partial year.
+              most recent cohort is a partial year. Average mass covers
+              all passenger cars, electric ones included. Engine size
+              covers only the cars that have an engine, because electric
+              vehicles have no cylinder capacity.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <HeavyTurnChart />
             <p className="mt-4 text-sm text-muted-foreground">
               Both series are means per first-registration-year cohort,
-              not medians.
+              not medians.{" "}
+              {formatNumber(latestCohort.count - (latestCohort.withEngine ?? 0))}{" "}
+              of {formatNumber(latestCohort.count)} cars in the{" "}
+              {latestCohort.year} cohort have no engine capacity.
             </p>
           </CardContent>
         </Card>
@@ -188,7 +197,13 @@ export default function Home() {
                   cilinderinhoud
                 </code>{" "}
                 per first-admission-year cohort of passenger cars from 1975
-                on; cohorts under 1,000 vehicles are excluded.
+                on. The mass averages cover all passenger cars including
+                electric vehicles, the engine-size averages cover only
+                vehicles with a recorded{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  cilinderinhoud
+                </code>
+                , and cohorts under 1,000 vehicles are excluded.
               </li>
               <li>
                 Figures include all vehicle types unless stated otherwise;

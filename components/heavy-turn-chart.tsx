@@ -21,6 +21,9 @@ const MASS_TOP = 22;
 const ENGINE_TITLE_Y = 184;
 const ENGINE_TOP = 194;
 const LABEL_PAD = 54;
+const AXIS_Y = ENGINE_TOP + PANEL_HEIGHT;
+const TICK_BOTTOM = AXIS_Y + 6;
+const TICK_LABEL_Y = AXIS_Y + 18;
 const HEIGHT = 352;
 const DECADES = [1980, 1990, 2000, 2010, 2020];
 
@@ -55,6 +58,16 @@ export function HeavyTurnChart() {
     PAD_X +
     ((year - firstYear) / (lastYear - firstYear)) * (WIDTH - 2 * PAD_X);
 
+  // Axis labels at a regular cadence including both endpoints; the
+  // endpoint labels anchor outward so they stay inside the viewBox.
+  const labeledYears = [
+    { year: firstYear, anchor: "start" as const },
+    ...DECADES.filter((year) => year > firstYear && year < lastYear).map(
+      (year) => ({ year, anchor: "middle" as const }),
+    ),
+    { year: lastYear, anchor: "end" as const },
+  ];
+
   function panelFor(values: number[], top: number): Panel {
     const min = Math.min(...values);
     const max = Math.max(...values);
@@ -80,7 +93,6 @@ export function HeavyTurnChart() {
 
   const firstMass = massRows[0];
   const lastMass = massRows[massRows.length - 1];
-  const lastEngine = engineRows[engineRows.length - 1];
 
   return (
     <figure>
@@ -90,10 +102,10 @@ export function HeavyTurnChart() {
         role="img"
         aria-label={`Line chart of the average mass in kilograms and the average engine size in cubic centimetres of passenger cars by year of first admission, from ${firstYear} to ${lastYear}. Mass grows from ${formatNumber(firstMass.avgMass)} kg in ${firstMass.year} to ${formatNumber(lastMass.avgMass)} kg in ${lastMass.year}, while engine size shrinks and both trends bend between 2017 and 2020.`}
       >
-        {/* Decade gridlines and year ticks, shared by both panels. */}
+        {/* Decade gridlines across both panels. */}
         {DECADES.filter((year) => year > firstYear && year < lastYear).map(
           (year) => (
-            <g key={year}>
+            <g key={`grid-${year}`}>
               <line
                 x1={xAxis(year)}
                 x2={xAxis(year)}
@@ -112,18 +124,43 @@ export function HeavyTurnChart() {
                 strokeWidth="1"
                 opacity="0.6"
               />
-              <text
-                x={xAxis(year)}
-                y={ENGINE_TOP + PANEL_HEIGHT + 18}
-                textAnchor="middle"
-                fontSize="11"
-                style={{ fill: "var(--muted-foreground)" }}
-              >
-                {year}
-              </text>
             </g>
           ),
         )}
+
+        {/* Year axis along the bottom edge of the engine panel, with a
+            tick and a label at every labeled year including both
+            endpoints. The end labels are anchored outward so nothing
+            clips at the viewBox edges. */}
+        <line
+          x1={xAxis(firstYear)}
+          x2={xAxis(lastYear)}
+          y1={AXIS_Y}
+          y2={AXIS_Y}
+          stroke="var(--border)"
+          strokeWidth="1"
+        />
+        {labeledYears.map(({ year, anchor }) => (
+          <g key={`tick-${year}`}>
+            <line
+              x1={xAxis(year)}
+              x2={xAxis(year)}
+              y1={AXIS_Y}
+              y2={TICK_BOTTOM}
+              stroke="var(--border)"
+              strokeWidth="1"
+            />
+            <text
+              x={xAxis(year)}
+              y={TICK_LABEL_Y}
+              textAnchor={anchor}
+              fontSize="11"
+              style={{ fill: "var(--muted-foreground)" }}
+            >
+              {year}
+            </text>
+          </g>
+        ))}
 
         {/* Top panel: average mass in kg. */}
         <text
@@ -245,7 +282,7 @@ export function HeavyTurnChart() {
             key={`engine-${row.year}`}
             label={String(row.year)}
             value={`${formatNumber(row.avgEngineSize)} cc`}
-            percent={`${formatNumber(row.count)} cars`}
+            percent={`${formatNumber(row.withEngine ?? 0)} cars with an engine`}
           >
             {(trigger) => (
               <g>
@@ -268,10 +305,8 @@ export function HeavyTurnChart() {
           </ChartTooltip>
         ))}
       </svg>
-      <figcaption className="mt-2 flex justify-between text-xs text-muted-foreground">
-        <span>{firstYear}</span>
-        <span>Year of first admission</span>
-        <span>{lastEngine ? lastEngine.year : lastYear}</span>
+      <figcaption className="mt-2 text-center text-xs text-muted-foreground">
+        Year of first admission
       </figcaption>
     </figure>
   );

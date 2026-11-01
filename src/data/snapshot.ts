@@ -16,6 +16,8 @@ export interface HeavyTurnYear {
   avgMass: number;
   avgEngineSize: number;
   count: number;
+  /** Cars with a recorded cilinderinhoud; only engineSizeByYear rows carry it. */
+  withEngine?: number;
 }
 
 export interface Snapshot {
