@@ -1,8 +1,13 @@
+"use client";
+
 import { snapshot, formatNumber, formatPercent } from "@/data/snapshot";
+import { ChartTooltip } from "@/components/ui/chart-tooltip";
 
 /**
  * Compact bar chart of the fleet by vehicle type, top six, with the
- * remainder grouped. Pure CSS bars, no client JS.
+ * remainder grouped. CSS bars with token-derived gradients; the full
+ * track is the hover, focus and tap target so every row gets a tooltip
+ * even when its bar is very small.
  */
 export function VehicleTypesChart() {
   const rows = [...snapshot.vehicleTypes].sort((a, b) => b.count - a.count);
@@ -28,20 +33,23 @@ export function VehicleTypesChart() {
                 </span>
               </span>
             </div>
-            <div
-              className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
-              role="presentation"
+            <ChartTooltip
+              label={row.label}
+              value={formatNumber(row.count)}
+              percent={formatPercent(share)}
             >
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${share * 100}%`,
-                  backgroundColor:
-                    index < 6 ? "var(--chart-2)" : "var(--chart-5)",
-                }}
-                title={`${row.label}: ${formatNumber(row.count)}`}
-              />
-            </div>
+              {(trigger) => (
+                <div
+                  {...trigger}
+                  className="chart-tooltip-trigger h-2.5 w-full overflow-hidden rounded-full bg-muted"
+                >
+                  <div
+                    className={`h-full rounded-full chart-gradient-${index < 6 ? 2 : 5}`}
+                    style={{ width: `${share * 100}%` }}
+                  />
+                </div>
+              )}
+            </ChartTooltip>
           </li>
         );
       })}

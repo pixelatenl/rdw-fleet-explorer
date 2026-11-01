@@ -1,14 +1,19 @@
+"use client";
+
 import {
   snapshot,
   formatNumber,
 } from "@/data/snapshot";
+import { ChartTooltip } from "@/components/ui/chart-tooltip";
 
 const FROM_YEAR = 1970;
 
 /**
  * Vertical bar chart of currently registered vehicles by the year they
- * were first registered in the Netherlands. Rendered as pure SVG with
- * native title tooltips, so no client JS is needed.
+ * were first registered in the Netherlands. Rendered as SVG with gradient
+ * fills derived from the chart tokens; hover, focus and tap tooltips come
+ * from the shared client tooltip component. Recent years keep their
+ * brighter fill and lighter opacity distinction.
  */
 export function RegistrationYearChart() {
   const rows = snapshot.registrationYears.filter((row) => row.year >= FROM_YEAR);
@@ -27,20 +32,41 @@ export function RegistrationYearChart() {
         role="img"
         aria-label={`Bar chart of vehicles currently registered in the Netherlands by year of first Dutch registration, from ${FROM_YEAR} to 2026. The largest year is ${largest.year} with ${formatNumber(largest.count)} vehicles.`}
       >
+        <defs>
+          <linearGradient id="registration-year-recent" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style={{ stopColor: "var(--chart-1)" }} />
+            <stop offset="1" style={{ stopColor: "var(--chart-1-base)" }} />
+          </linearGradient>
+          <linearGradient id="registration-year-older" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style={{ stopColor: "var(--chart-2)" }} />
+            <stop offset="1" style={{ stopColor: "var(--chart-2-base)" }} />
+          </linearGradient>
+        </defs>
         {rows.map((row, index) => {
           const barHeight = (row.count / max) * (chartHeight - 8);
           return (
-            <rect
+            <ChartTooltip
               key={row.year}
-              x={index * (chartWidth / rows.length) + gap / 2}
-              y={chartHeight - barHeight}
-              width={Math.max(barWidth - gap, 1)}
-              height={barHeight}
-              fill={row.year >= 2020 ? "var(--chart-1)" : "var(--chart-2)"}
-              opacity={row.year >= 2020 ? 1 : 0.75}
+              label={String(row.year)}
+              value={`${formatNumber(row.count)} vehicles`}
             >
-              <title>{`${row.year}: ${formatNumber(row.count)} vehicles`}</title>
-            </rect>
+              {(trigger) => (
+                <rect
+                  {...trigger}
+                  className="chart-tooltip-trigger"
+                  x={index * (chartWidth / rows.length) + gap / 2}
+                  y={chartHeight - barHeight}
+                  width={Math.max(barWidth - gap, 1)}
+                  height={barHeight}
+                  fill={
+                    row.year >= 2020
+                      ? "url(#registration-year-recent)"
+                      : "url(#registration-year-older)"
+                  }
+                  opacity={row.year >= 2020 ? 1 : 0.75}
+                />
+              )}
+            </ChartTooltip>
           );
         })}
       </svg>

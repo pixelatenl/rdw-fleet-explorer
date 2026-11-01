@@ -67,6 +67,19 @@
   --chart-5: #d2ecf1;
 }
 
+/*
+  Chart fills and focus affordances. The gradient base stops derive from
+  the chart tokens in this file only, so the bars darken subtly toward
+  their base and both themes apply without any JavaScript theme checks.
+*/
+:root {
+  --chart-1-base: color-mix(in oklab, var(--chart-1) 85%, #000);
+  --chart-2-base: color-mix(in oklab, var(--chart-2) 85%, #000);
+  --chart-3-base: color-mix(in oklab, var(--chart-3) 85%, #000);
+  --chart-4-base: color-mix(in oklab, var(--chart-4) 85%, #000);
+  --chart-5-base: color-mix(in oklab, var(--chart-5) 85%, #000);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -98,5 +111,38 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  /* Vertical chart gradients: the token color at the top, subtly darker
+     at the base. Referencing the custom properties keeps both themes and
+     live theme toggles working with no JavaScript involvement. */
+  .chart-gradient-1 {
+    background-image: linear-gradient(to bottom, var(--chart-1), var(--chart-1-base));
+  }
+  .chart-gradient-2 {
+    background-image: linear-gradient(to bottom, var(--chart-2), var(--chart-2-base));
+  }
+  .chart-gradient-3 {
+    background-image: linear-gradient(to bottom, var(--chart-3), var(--chart-3-base));
+  }
+  .chart-gradient-4 {
+    background-image: linear-gradient(to bottom, var(--chart-4), var(--chart-4-base));
+  }
+  .chart-gradient-5 {
+    background-image: linear-gradient(to bottom, var(--chart-5), var(--chart-5-base));
+  }
+
+  /* Focus rings for chart bars and segments. SVG shapes render CSS
+     outlines unreliably, so SVG triggers use a stroke ring instead. */
+  .chart-tooltip-trigger:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  svg .chart-tooltip-trigger:focus-visible {
+    outline: none;
+    stroke: var(--ring);
+    stroke-width: 1.5;
   }
 }

@@ -1,22 +1,28 @@
+"use client";
+
 import {
   snapshot,
   fuelRegistrationsTotal,
   formatNumber,
   formatPercent,
 } from "@/data/snapshot";
+import { ChartTooltip } from "@/components/ui/chart-tooltip";
 
-const colorByKey: Record<string, string> = {
-  benzine: "var(--chart-3)",
-  elektriciteit: "var(--chart-1)",
-  diesel: "var(--chart-4)",
-  lpg: "var(--chart-5)",
-  other: "var(--chart-2)",
+/** Chart token index used for each fuel, matching the legend colors. */
+const tokenByKey: Record<string, number> = {
+  benzine: 3,
+  elektriciteit: 1,
+  diesel: 4,
+  lpg: 5,
+  other: 2,
 };
 
 /**
  * Horizontal bar chart of fuel registrations in the RDW register.
  * Multi-fuel vehicles (hybrids) count once per fuel, which is stated
- * in the card copy. Pure CSS bars, no client JS.
+ * in the card copy. CSS bars with token-derived gradients; the full
+ * track is the hover, focus and tap target so even the smallest fuels
+ * get a tooltip.
  */
 export function FuelRegistrationsChart() {
   const rows = [...snapshot.fuelRegistrations]
@@ -47,20 +53,23 @@ export function FuelRegistrationsChart() {
                 </span>
               </span>
             </div>
-            <div
-              className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
-              role="presentation"
+            <ChartTooltip
+              label={row.label}
+              value={formatNumber(row.count)}
+              percent={formatPercent(share)}
             >
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${share * 100}%`,
-                  backgroundColor:
-                    colorByKey[row.key] ?? "var(--chart-2)",
-                }}
-                title={`${row.label}: ${formatNumber(row.count)}`}
-              />
-            </div>
+              {(trigger) => (
+                <div
+                  {...trigger}
+                  className="chart-tooltip-trigger h-2.5 w-full overflow-hidden rounded-full bg-muted"
+                >
+                  <div
+                    className={`h-full rounded-full chart-gradient-${tokenByKey[row.key] ?? 2}`}
+                    style={{ width: `${share * 100}%` }}
+                  />
+                </div>
+              )}
+            </ChartTooltip>
           </li>
         );
       })}
