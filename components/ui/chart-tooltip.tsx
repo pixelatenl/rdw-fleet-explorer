@@ -45,8 +45,17 @@ export interface ChartTooltipProps {
   value: string;
   /** Optional share of the relevant total, already formatted. */
   percent?: string;
-  /** Renders the trigger from the given props. */
-  children: (trigger: ChartTooltipTriggerProps) => ReactNode;
+  /** Optional second value line, rendered under the first. */
+  value2?: string;
+  /**
+   * Renders the trigger from the given props; active is true while the
+   * tooltip is open, so the caller can highlight related visuals.
+   * Callers that ignore active keep working unchanged.
+   */
+  children: (
+    trigger: ChartTooltipTriggerProps,
+    active: boolean,
+  ) => ReactNode;
 }
 
 /**
@@ -63,6 +72,7 @@ export function ChartTooltip({
   label,
   value,
   percent,
+  value2,
   children,
 }: ChartTooltipProps) {
   const [open, setOpen] = useState(false);
@@ -133,7 +143,7 @@ export function ChartTooltip({
     },
     tabIndex: 0,
     role: "img",
-    "aria-label": `${label}: ${value}${percent ? ` (${percent})` : ""}`,
+    "aria-label": `${label}: ${value}${percent ? ` (${percent})` : ""}${value2 ? `. ${value2}` : ""}`,
     onFocus: show,
     onBlur: () => setOpen(false),
     onMouseEnter: show,
@@ -149,7 +159,7 @@ export function ChartTooltip({
 
   return (
     <>
-      {children(trigger)}
+      {children(trigger, open)}
       {open &&
         createPortal(
           <div
@@ -167,6 +177,11 @@ export function ChartTooltip({
               {value}
               {percent ? ` · ${percent}` : ""}
             </p>
+            {value2 && (
+              <p className="mt-0.5 text-muted-foreground tabular-nums">
+                {value2}
+              </p>
+            )}
           </div>,
           document.body,
         )}

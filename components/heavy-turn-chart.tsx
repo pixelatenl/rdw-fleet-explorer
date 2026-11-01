@@ -9,8 +9,10 @@ import { ChartTooltip } from "@/components/ui/chart-tooltip";
   mass in kilograms of each first-admission-year cohort of passenger
   cars, the bottom panel its average engine size in cubic centimetres.
   Pure SVG with chart-token strokes so both themes work without
-  JavaScript involvement; hover, focus and tap tooltips come from the
-  shared client tooltip component, one trigger per cohort point.
+  JavaScript involvement. Interaction is per year, not per point: one
+  transparent strip per cohort spans both panels, so hover, focus and
+  tap highlight that year everywhere at once, with one tooltip holding
+  both series and a dashed guide line connecting the panels.
 */
 
 const WIDTH = 720;
@@ -94,6 +96,25 @@ export function HeavyTurnChart() {
   const firstMass = massRows[0];
   const lastMass = massRows[massRows.length - 1];
 
+  const massByYear = new Map(massRows.map((row) => [row.year, row]));
+  const engineByYear = new Map(engineRows.map((row) => [row.year, row]));
+
+  // One interaction strip per cohort year, spanning both panels. Each
+  // strip reaches from the midpoint between the neighbouring years to
+  // the other; the first and last years extend to the plot edges. The
+  // DOM order is chronological, so keyboard focus walks the years in
+  // order.
+  const strips = years.map((year, index) => {
+    const cx = xAxis(year);
+    const left =
+      index === 0 ? PAD_X : (xAxis(years[index - 1]) + cx) / 2;
+    const right =
+      index === years.length - 1
+        ? WIDTH - PAD_X
+        : (xAxis(years[index + 1]) + cx) / 2;
+    return { year, cx, x: left, width: right - left };
+  });
+
   return (
     <figure>
       <svg
@@ -154,7 +175,7 @@ export function HeavyTurnChart() {
               x={xAxis(year)}
               y={TICK_LABEL_Y}
               textAnchor={anchor}
-              fontSize="11"
+              fontSize="10"
               style={{ fill: "var(--muted-foreground)" }}
             >
               {year}
@@ -203,6 +224,7 @@ export function HeavyTurnChart() {
           strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"
+          pointerEvents="none"
         />
 
         {/* Bottom panel: average engine size in cc. */}
@@ -246,64 +268,93 @@ export function HeavyTurnChart() {
           strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"
+          pointerEvents="none"
         />
 
-        {/* Cohort points. The transparent trigger circle carries the
-            tooltip interaction; the visible dot sits on top of it. */}
+        {/* Static cohort dots; the strips own all interaction. */}
         {massRows.map((row) => (
-          <ChartTooltip
-            key={`mass-${row.year}`}
-            label={String(row.year)}
-            value={`${formatNumber(row.avgMass)} kg`}
-            percent={`${formatNumber(row.count)} cars`}
-          >
-            {(trigger) => (
-              <g>
-                <circle
-                  {...trigger}
-                  className="chart-tooltip-trigger"
-                  cx={xAxis(row.year)}
-                  cy={yAxis(massPanel, row.avgMass)}
-                  r="10"
-                  fill="transparent"
-                />
-                <circle
-                  cx={xAxis(row.year)}
-                  cy={yAxis(massPanel, row.avgMass)}
-                  r="3"
-                  fill="var(--chart-1)"
-                />
-              </g>
-            )}
-          </ChartTooltip>
+          <circle
+            key={`mass-dot-${row.year}`}
+            cx={xAxis(row.year)}
+            cy={yAxis(massPanel, row.avgMass)}
+            r="3"
+            fill="var(--chart-1)"
+            pointerEvents="none"
+          />
         ))}
         {engineRows.map((row) => (
-          <ChartTooltip
-            key={`engine-${row.year}`}
-            label={String(row.year)}
-            value={`${formatNumber(row.avgEngineSize)} cc`}
-            percent={`${formatNumber(row.withEngine ?? 0)} cars with an engine`}
-          >
-            {(trigger) => (
-              <g>
-                <circle
-                  {...trigger}
-                  className="chart-tooltip-trigger"
-                  cx={xAxis(row.year)}
-                  cy={yAxis(enginePanel, row.avgEngineSize)}
-                  r="10"
-                  fill="transparent"
-                />
-                <circle
-                  cx={xAxis(row.year)}
-                  cy={yAxis(enginePanel, row.avgEngineSize)}
-                  r="3"
-                  fill="var(--chart-2)"
-                />
-              </g>
-            )}
-          </ChartTooltip>
+          <circle
+            key={`engine-dot-${row.year}`}
+            cx={xAxis(row.year)}
+            cy={yAxis(enginePanel, row.avgEngineSize)}
+            r="3"
+            fill="var(--chart-2)"
+            pointerEvents="none"
+          />
         ))}
+
+        {/* Year strips: one full-height trigger per cohort. While a year
+            is active, a dashed guide line connects the panels and that
+            year's dots in both panels gain a stroke ring. */}
+        {strips.map(({ year, cx, x, width }) => {
+          const massRow = massByYear.get(year);
+          const engineRow = engineByYear.get(year);
+          if (!massRow || !engineRow) return null;
+          return (
+            <ChartTooltip
+              key={`strip-${year}`}
+              label={String(year)}
+              value={`Average mass ${formatNumber(massRow.avgMass)} kg · ${formatNumber(massRow.count)} cars`}
+              value2={`Average engine size ${formatNumber(engineRow.avgEngineSize)} cc · ${formatNumber(engineRow.withEngine ?? 0)} cars with an engine`}
+            >
+              {(trigger, active) => (
+                <g>
+                  {active && (
+                    <>
+                      <line
+                        x1={cx}
+                        x2={cx}
+                        y1={MASS_TOP}
+                        y2={AXIS_Y}
+                        stroke="var(--border)"
+                        strokeWidth="1"
+                        strokeDasharray="4 4"
+                        pointerEvents="none"
+                      />
+                      <circle
+                        cx={cx}
+                        cy={yAxis(massPanel, massRow.avgMass)}
+                        r="6"
+                        fill="none"
+                        stroke="var(--chart-1)"
+                        strokeWidth="2"
+                        pointerEvents="none"
+                      />
+                      <circle
+                        cx={cx}
+                        cy={yAxis(enginePanel, engineRow.avgEngineSize)}
+                        r="6"
+                        fill="none"
+                        stroke="var(--chart-2)"
+                        strokeWidth="2"
+                        pointerEvents="none"
+                      />
+                    </>
+                  )}
+                  <rect
+                    {...trigger}
+                    className="chart-tooltip-trigger"
+                    x={x}
+                    y={MASS_TOP}
+                    width={width}
+                    height={AXIS_Y - MASS_TOP}
+                    fill="transparent"
+                  />
+                </g>
+              )}
+            </ChartTooltip>
+          );
+        })}
       </svg>
       <figcaption className="mt-2 text-center text-xs text-muted-foreground">
         Year of first admission
