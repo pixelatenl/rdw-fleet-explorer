@@ -9,7 +9,7 @@ import { snapshot } from "@/data/snapshot";
 export function FamilyFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="mx-auto flex max-w-[1536px] flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="text-sm text-muted-foreground">
           <p>
             Data:{" "}

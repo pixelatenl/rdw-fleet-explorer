@@ -80,6 +80,41 @@
   --chart-5-base: color-mix(in oklab, var(--chart-5) 85%, #000);
 }
 
+/*
+  Fleet treemap tile surfaces. Tile text sits on a readability gradient
+  of these colors at 90% opacity over the duotone photo, so they must
+  keep text-card-foreground at a 4.5:1 contrast in both themes. The raw
+  chart tokens cannot (too dark for the dark light-theme text, too light
+  for the light dark-theme text), so each tile is a token-derived tint
+  mixed toward the theme surface here. The no-electric tile derives from
+  the darkest token and stays the most muted surface so it recedes,
+  while the electric tiles keep the brightest tints of the set.
+*/
+:root {
+  /* Battery electric: the brightest token, the eye lands here first. */
+  --fleet-tile-1: var(--chart-1);
+  --fleet-tile-2: color-mix(in oklab, var(--chart-2) 85%, var(--card));
+  --fleet-tile-3: color-mix(in oklab, var(--chart-3) 60%, var(--card));
+  --fleet-tile-4: color-mix(in oklab, var(--chart-4) 55%, var(--card));
+  /* No electric drive: darkest chart token, muted so it recedes, while
+     staying light enough for 4.5:1 text on the photo gradient. */
+  --fleet-tile-5: color-mix(in oklab, var(--chart-4) 52%, var(--card));
+
+  /* Duotone photo blend and tile edge treatment. */
+  --fleet-photo-opacity: 0.45;
+  --fleet-tile-edge-mix: #fff;
+}
+
+.dark {
+  --fleet-tile-1: color-mix(in oklab, var(--chart-1) 16%, var(--background));
+  --fleet-tile-2: color-mix(in oklab, var(--chart-2) 12%, var(--background));
+  --fleet-tile-3: color-mix(in oklab, var(--chart-3) 10%, var(--background));
+  --fleet-tile-4: color-mix(in oklab, var(--chart-4) 11%, var(--background));
+  --fleet-tile-5: color-mix(in oklab, var(--chart-4) 8%, var(--background));
+
+  --fleet-photo-opacity: 0.55;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -144,5 +179,60 @@
     outline: none;
     stroke: var(--ring);
     stroke-width: 1.5;
+  }
+}
+
+/*
+  Fleet treemap depth and motion. Tiles carry a subtle 1px inner edge in
+  a lighter variant of their own token color (set per tile through the
+  --fleet-tile-edge custom property), and lift on hover and keyboard
+  focus. The photo layer reads as duotone texture: grayscale, luminosity
+  blended into the token base fill, slowly panning inside the clipped
+  tile. Everything is disabled under prefers-reduced-motion.
+*/
+.fleet-tile {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--fleet-tile-edge);
+  transition:
+    transform 200ms ease-out,
+    box-shadow 200ms ease-out;
+}
+
+.fleet-tile:hover,
+.fleet-tile:focus-visible {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px var(--fleet-tile-edge),
+    0 10px 20px -8px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes fleet-photo-pan {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
+.fleet-photo {
+  transform: scale(1.06);
+  filter: grayscale(1) contrast(1.05);
+  mix-blend-mode: luminosity;
+  opacity: var(--fleet-photo-opacity);
+  animation: fleet-photo-pan 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fleet-tile,
+  .fleet-tile:hover,
+  .fleet-tile:focus-visible {
+    transition: none;
+    transform: none;
+  }
+
+  .fleet-photo {
+    animation: none;
   }
 }

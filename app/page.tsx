@@ -5,27 +5,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { StatCard } from "@/components/stat-card";
+import { FleetTreemap } from "@/components/fleet-treemap";
 import { ElectricSplitChart } from "@/components/electric-split-chart";
 import { FuelRegistrationsChart } from "@/components/fuel-registrations-chart";
 import { VehicleTypesChart } from "@/components/vehicle-types-chart";
 import { RegistrationYearChart } from "@/components/registration-year-chart";
-import {
-  snapshot,
-  electricVehicles,
-  batteryElectric,
-  plugInHybrids,
-  fullHybrids,
-  electricShareOfFuelVehicles,
-  batteryElectricShareOfFuelVehicles,
-  passengerCars,
-  formatNumber,
-  formatPercent,
-} from "@/data/snapshot";
+import { snapshot, formatNumber } from "@/data/snapshot";
 
 export default function Home() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-[1536px] px-4 py-10 sm:px-6 sm:py-16">
       <section className="mb-12">
         <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
           Dutch open data, visualized by Pixelate
@@ -40,27 +29,8 @@ export default function Home() {
           of a growing family of open data products.
         </p>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Vehicles in the register"
-            value={formatNumber(snapshot.totals.vehicles)}
-            sub={`Including ${formatNumber(passengerCars)} passenger cars`}
-          />
-          <StatCard
-            label="Vehicles with electric drive"
-            value={formatNumber(electricVehicles)}
-            sub={`${formatPercent(electricShareOfFuelVehicles)} of vehicles with fuel data`}
-          />
-          <StatCard
-            label="Fully battery electric"
-            value={formatNumber(batteryElectric)}
-            sub={`${formatPercent(batteryElectricShareOfFuelVehicles)} of vehicles with fuel data`}
-          />
-          <StatCard
-            label="Plug-in and full hybrids"
-            value={formatNumber(plugInHybrids + fullHybrids)}
-            sub={`${formatNumber(plugInHybrids)} plug-in, ${formatNumber(fullHybrids)} full hybrid`}
-          />
+        <div className="mt-8">
+          <FleetTreemap />
         </div>
       </section>
 
@@ -165,6 +135,57 @@ export default function Home() {
                 Figures include all vehicle types unless stated otherwise;
                 trailers and similar vehicles without fuel data are excluded
                 from fuel-based shares.
+              </li>
+              <li className="text-xs">
+                Photo by{" "}
+                <a
+                  className="underline underline-offset-2 hover:text-foreground"
+                  href="https://unsplash.com/@chuttersnap"
+                >
+                  CHUTTERSNAP
+                </a>{" "}
+                on{" "}
+                <a
+                  className="underline underline-offset-2 hover:text-foreground"
+                  href="https://unsplash.com/photos/electric-vehicle-charging-cable-plugged-into-car-xJLsHl0hIik"
+                >
+                  Unsplash
+                </a>
+                .
+              </li>
+              <li className="text-xs">
+                Photo by{" "}
+                <a
+                  className="underline underline-offset-2 hover:text-foreground"
+                  href="https://unsplash.com/@ivankazlouskij"
+                >
+                  Ivan Kazlouskij
+                </a>{" "}
+                on{" "}
+                <a
+                  className="underline underline-offset-2 hover:text-foreground"
+                  href="https://unsplash.com/photos/a-close-up-of-a-cars-logo-TgtwqlglS-s"
+                >
+                  Unsplash
+                </a>
+                .
+              </li>
+              <li className="text-xs">
+                Photo by{" "}
+                <a
+                  className="underline underline-offset-2 hover:text-foreground"
+                  href="https://unsplash.com/@mkumbwajr"
+                >
+                  Ali Mkumbwa
+                </a>{" "}
+                on{" "}
+                <a
+                  className="underline underline-offset-2 hover:text-foreground"
+                  href="https://unsplash.com/photos/a-man-pumping-gas-into-his-car-at-a-gas-station-BK20Ws-wSFc"
+                >
+                  Unsplash
+                </a>
+                .
               </li>
             </ul>
           </CardContent>
