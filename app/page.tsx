@@ -46,8 +46,8 @@ export default function Home() {
         <p className="mt-4 max-w-5xl text-lg text-muted-foreground">
           Live aggregates from the complete RDW vehicle register, more than{" "}
           {formatNumber(snapshot.totals.vehicles)} vehicles, refreshed
-          weekly and rendered straight into this page. This is version one
-          of a growing family of open data products.
+          weekly and rendered straight into this page. This is the first
+          product in Pixelate&apos;s Open Data Project.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           Data received on {formatDate(snapshot.retrievedAt)}.
@@ -221,7 +221,7 @@ export default function Home() {
           <CardHeader>
             <CardTitle className="text-xl">What is next</CardTitle>
             <CardDescription>
-              Version one establishes the family pipeline. The next versions
+              Version one establishes the product pipeline. The next versions
               add depth and correlation.
             </CardDescription>
           </CardHeader>
@@ -238,8 +238,8 @@ export default function Home() {
                 caveat for lease and business vehicles.
               </li>
               <li>
-                A launcher hub connecting all products in the Pixelate data
-                family, sharing this theme and the same family header.
+                A launcher website for the Open Data Project, connecting all
+                products, sharing this theme and the same family header.
               </li>
             </ul>
           </CardContent>

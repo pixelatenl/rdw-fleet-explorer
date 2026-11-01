@@ -6,7 +6,10 @@ export const FAMILY = {
   organization: "Pixelate BV",
   organizationUrl: "https://pixelate.nl",
   productName: "Dutch Fleet Electrification Explorer",
-  /** Launcher hub linking all products in the family. */
+  /**
+   * Launcher website of the Open Data Project, which will gather all the
+   * open data projects. Points to pixelate.nl until the launcher ships.
+   */
   launcherUrl: "https://pixelate.nl",
-  launcherLabel: "Data family",
+  launcherLabel: "Open Data Project",
 } as const;
