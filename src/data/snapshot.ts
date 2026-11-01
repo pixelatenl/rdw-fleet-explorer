@@ -35,6 +35,7 @@ export interface Snapshot {
   };
   fuelRegistrations: LabeledCount[];
   electricSplit: LabeledCount[];
+  fuelCellByFuel: LabeledCount[];
   vehicleTypes: LabeledCount[];
   registrationYears: YearCount[];
   registrationYearsUnknown: number;

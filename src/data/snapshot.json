@@ -31,6 +31,14 @@
     { "key": "ovc-hev", "label": "Plug-in hybrid", "count": 718225 },
     { "key": "fchv", "label": "Fuel cell hybrid", "count": 2080 }
   ],
+  "fuelCellByFuel": [
+    { "key": "elektriciteit", "label": "Electric", "count": 2080 },
+    { "key": "waterstof", "label": "Hydrogen", "count": 1081 },
+    { "key": "benzine", "label": "Petrol", "count": 992 },
+    { "key": "diesel", "label": "Diesel", "count": 7 },
+    { "key": "lpg", "label": "LPG", "count": 4 },
+    { "key": "alcohol", "label": "Alcohol", "count": 1 }
+  ],
   "vehicleTypes": [
     { "key": "personenauto", "label": "Passenger car", "count": 10829395 },
     { "key": "bedrijfsauto", "label": "Van", "count": 1499569 },

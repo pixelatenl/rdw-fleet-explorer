@@ -17,6 +17,20 @@ export default function Home() {
   const latestCohort =
     snapshot.engineSizeByYear[snapshot.engineSizeByYear.length - 1];
 
+  // Fuel cell coverage, derived from the snapshot: the total over all
+  // recorded fuels, plus the hydrogen and petrol entries. The sentence
+  // is omitted when an expected entry is missing.
+  const fuelCellTotal = snapshot.fuelCellByFuel.reduce(
+    (sum, entry) => sum + entry.count,
+    0,
+  );
+  const fuelCellHydrogen = snapshot.fuelCellByFuel.find(
+    (entry) => entry.key === "waterstof",
+  );
+  const fuelCellPetrol = snapshot.fuelCellByFuel.find(
+    (entry) => entry.key === "benzine",
+  );
+
   const datasetJsonLd = {
     "@context": "https://schema.org",
     "@type": "Dataset",
@@ -69,7 +83,11 @@ export default function Home() {
             <CardDescription>
               Every vehicle in the register that lists{" "}
               <span className="text-brand-accent">electricity</span> as one
-              of its fuels, grouped by its recorded hybrid class.
+              of its fuels, grouped by its recorded hybrid class.{" "}
+              {fuelCellHydrogen &&
+                fuelCellPetrol &&
+                fuelCellTotal > 0 &&
+                `The fuel cell tile counts only fuel cell vehicles that list electricity; the register holds ${formatNumber(fuelCellTotal)} vehicles with a fuel cell class, of which ${formatNumber(fuelCellHydrogen.count)} list hydrogen and ${formatNumber(fuelCellPetrol.count)} petrol.`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -206,6 +224,30 @@ export default function Home() {
                   cilinderinhoud
                 </code>
                 , and cohorts under 1,000 vehicles are excluded.
+              </li>
+              <li>
+                The fuel cell coverage is a SoQL count of distinct{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  kenteken
+                </code>{" "}
+                per recorded fuel over the fuel cell hybrid classes{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  NOVC-FCHV
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  OVC-FCHV
+                </code>
+                . Hydrogen fuel cell vehicles carry a{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  Waterstof
+                </code>{" "}
+                row without a matching{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  Elektriciteit
+                </code>{" "}
+                row, which is why the electric split counts only the
+                electricity-listing portion.
               </li>
               <li>
                 Figures include all vehicle types unless stated otherwise;

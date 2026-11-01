@@ -123,6 +123,7 @@ async function main() {
     fuelTotals,
     massByYearRaw,
     engineSizeByYearRaw,
+    fuelCellRaw,
   ] = await Promise.all([
     query(
       DATASET_FUEL,
@@ -164,6 +165,15 @@ async function main() {
         "where voertuigsoort='Personenauto' and datum_eerste_toelating_dt >= '1975-01-01' " +
         "group by year order by year limit 200"
     ),
+    // Fuel cell coverage: distinct vehicles per recorded fuel over the
+    // fuel cell hybrid classes. The class values are uppercase in the
+    // register, so the where clause matches them literally.
+    query(
+      DATASET_FUEL,
+      "select brandstof_omschrijving, count(distinct kenteken) as vehicles " +
+        "where klasse_hybride_elektrisch_voertuig in ('NOVC-FCHV','OVC-FCHV') " +
+        "group by brandstof_omschrijving order by vehicles desc"
+    ),
   ]);
 
   const vehicles = await query(
@@ -179,6 +189,18 @@ async function main() {
       (row.brandstof_omschrijving ?? "Unknown"),
     count: Number(row.aantal),
   }));
+
+  // Fuel cell coverage per recorded fuel, keyed and labelled like the
+  // fuel registrations; unlabelled rows are kept as Unknown.
+  const fuelCellByFuel = fuelCellRaw
+    .map((row) => ({
+      key: (row.brandstof_omschrijving ?? "onbekend").toLowerCase(),
+      label:
+        fuelLabelByKey[(row.brandstof_omschrijving ?? "").toLowerCase()] ??
+        (row.brandstof_omschrijving ?? "Unknown"),
+      count: Number(row.vehicles),
+    }))
+    .sort((a, b) => b.count - a.count);
 
   // Electric split; rows without a hybrid class are battery electric.
   const splitByClass = new Map();
@@ -295,6 +317,7 @@ async function main() {
     },
     fuelRegistrations,
     electricSplit,
+    fuelCellByFuel,
     vehicleTypes: vehicleTypesList,
     registrationYears,
     registrationYearsUnknown,
