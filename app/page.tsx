@@ -45,7 +45,8 @@ export default function Home() {
           Dutch open data, visualized by Pixelate
         </p>
         <h1 className="max-w-5xl text-4xl font-bold tracking-tight sm:text-5xl">
-          How electric is the Dutch fleet?
+          How electric is the <span className="text-brand-accent">Dutch</span>{" "}
+          fleet?
         </h1>
         <p className="mt-4 max-w-5xl text-lg text-muted-foreground">
           Live aggregates from the complete RDW vehicle register, more than{" "}
@@ -67,8 +68,9 @@ export default function Home() {
           <CardHeader>
             <CardTitle className="text-xl">The electric fleet, split by drivetrain</CardTitle>
             <CardDescription>
-              Every vehicle in the register that lists electricity as one of
-              its fuels, grouped by its recorded hybrid class.
+              Every vehicle in the register that lists{" "}
+              <span className="text-brand-accent">electricity</span> as one
+              of its fuels, grouped by its recorded hybrid class.
             </CardDescription>
           </CardHeader>
           <CardContent>

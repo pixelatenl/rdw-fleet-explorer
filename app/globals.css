@@ -14,6 +14,17 @@
 :root {
   --radius: 0.625rem;
 
+  /*
+    Brand accent orange, a family theme token to be added to the shared
+    family registry (registry.json) once that work happens. The light
+    theme uses the darkened variant #A64B0C, because the brand orange
+    #F48822 reaches only 2.27 to 1 on the light background; the darkened
+    variant reaches 5.24 to 1 on light, and the brand orange itself
+    reaches 5.25 to 1 on the dark background. Both values keep normal
+    text at WCAG AA, 4.5 to 1, in their theme.
+  */
+  --brand-accent: #A64B0C;
+
   /* Light theme: light Pixelate green tint */
   --background: #eaf6f9;
   --foreground: #051214;
@@ -59,6 +70,10 @@
   --border: #225662;
   --input: #225662;
   --ring: #48b9d1;
+
+  /* Brand accent orange at full brand value, 5.25 to 1 on the dark
+     background; see the :root block for the contrast rationale. */
+  --brand-accent: #F48822;
 
   --chart-1: #48b9d1;
   --chart-2: #6fd0e2;
@@ -133,6 +148,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand-accent: var(--brand-accent);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
