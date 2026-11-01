@@ -1,0 +1,35 @@
+name: Refresh data snapshot
+
+# Weekly server-side aggregation against the keyless RDW SODA API.
+# Writes src/data/snapshot.json and commits it to main, which triggers
+# the build workflow. No raw vehicle records are stored.
+
+on:
+  schedule:
+    # Mondays 04:10 UTC, outside common backup windows.
+    - cron: "10 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/snapshot.mjs
+      - name: Commit snapshot if changed
+        run: |
+          git config user.name "rdw-snapshot-bot"
+          git config user.email "actions@github.com"
+          git add src/data/snapshot.json
+          if git diff --cached --quiet; then
+            echo "No snapshot changes."
+          else
+            git commit -m "data: refresh RDW snapshot $(date -u +%F)"
+            git push
+          fi

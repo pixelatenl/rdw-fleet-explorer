@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Pixelate family theme, built on the shadcn/ui default token set.
+  The neutral white surfaces of the shadcn default theme are replaced by
+  the Pixelate green (#48B9D1) in two shades: a light tint for the light
+  theme, the dark pixelate.nl teal (#0F353D) for the dark theme.
+  NOTE: these brand values are provisional until the exact brand colors
+  are confirmed; they are isolated in this file for a one-place swap.
+*/
+
+:root {
+  --radius: 0.625rem;
+
+  /* Light theme: light Pixelate green tint */
+  --background: #eaf6f9;
+  --foreground: #051214;
+  --card: #f6fbfc;
+  --card-foreground: #051214;
+  --popover: #f6fbfc;
+  --popover-foreground: #051214;
+  --primary: #48b9d1;
+  --primary-foreground: #051214;
+  --secondary: #d3ecf1;
+  --secondary-foreground: #0f353d;
+  --muted: #dceef2;
+  --muted-foreground: #47626a;
+  --accent: #c4e5ec;
+  --accent-foreground: #051214;
+  --border: #c8dee4;
+  --input: #c8dee4;
+  --ring: #48b9d1;
+
+  --chart-1: #48b9d1;
+  --chart-2: #2b8ba3;
+  --chart-3: #166474;
+  --chart-4: #0f353d;
+  --chart-5: #86d6e5;
+}
+
+.dark {
+  /* Dark theme: dark pixelate.nl teal */
+  --background: #0f353d;
+  --foreground: #e9f6f9;
+  --card: #14414c;
+  --card-foreground: #e9f6f9;
+  --popover: #14414c;
+  --popover-foreground: #e9f6f9;
+  --primary: #48b9d1;
+  --primary-foreground: #051214;
+  --secondary: #1b4e5a;
+  --secondary-foreground: #d2ecf1;
+  --muted: #174049;
+  --muted-foreground: #9ac0cb;
+  --accent: #1f5766;
+  --accent-foreground: #e9f6f9;
+  --border: #225662;
+  --input: #225662;
+  --ring: #48b9d1;
+
+  --chart-1: #48b9d1;
+  --chart-2: #6fd0e2;
+  --chart-3: #a7e2ee;
+  --chart-4: #86d6e5;
+  --chart-5: #d2ecf1;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
