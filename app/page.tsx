@@ -45,8 +45,8 @@ export default function Home() {
           Dutch open data, visualized by Pixelate
         </p>
         <h1 className="max-w-5xl text-4xl font-bold tracking-tight sm:text-5xl">
-          How electric is the <span className="text-brand-accent">Dutch</span>{" "}
-          fleet?
+          How <span className="text-brand-accent">electric</span> is the{" "}
+          <span className="text-brand-accent">Dutch</span> fleet?
         </h1>
         <p className="mt-4 max-w-5xl text-lg text-muted-foreground">
           Live aggregates from the complete RDW vehicle register, more than{" "}
