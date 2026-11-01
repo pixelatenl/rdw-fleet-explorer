@@ -31,6 +31,27 @@ export default function Home() {
     (entry) => entry.key === "benzine",
   );
 
+  // Median entry year over the full registration-year series, sorted
+  // ascending: the first year where the cumulative count reaches half
+  // of the vehicles with a known year.
+  const knownYearTotal = snapshot.registrationYears.reduce(
+    (sum, row) => sum + row.count,
+    0,
+  );
+  let cumulativeYears = 0;
+  let medianEntryYear = snapshot.registrationYears[0]?.year;
+  for (const row of [...snapshot.registrationYears].sort(
+    (a, b) => a.year - b.year,
+  )) {
+    cumulativeYears += row.count;
+    if (cumulativeYears * 2 >= knownYearTotal) {
+      medianEntryYear = row.year;
+      break;
+    }
+  }
+  const latestEntryYear =
+    snapshot.registrationYears[snapshot.registrationYears.length - 1]?.year;
+
   const datasetJsonLd = {
     "@context": "https://schema.org",
     "@type": "Dataset",
@@ -129,9 +150,12 @@ export default function Home() {
           <CardHeader>
             <CardTitle className="text-xl">When today&apos;s fleet entered the Netherlands</CardTitle>
             <CardDescription>
-              Currently registered vehicles by the year they were first
-              registered in the Netherlands. This is the age structure of the
-              fleet, not a sales history.
+              Each bar counts only the vehicles from that entry year that
+              are still registered today. Vehicles scrapped, exported, or
+              deregistered since have left the register, so a bar is a
+              survivor count, not the number registered that year. Half
+              of the fleet entered in {medianEntryYear} or later, and{" "}
+              {latestEntryYear} is a partial year.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -248,6 +272,13 @@ export default function Home() {
                 </code>{" "}
                 row, which is why the electric split counts only the
                 electricity-listing portion.
+              </li>
+              <li>
+                Entry year is the first registration in the Netherlands,
+                so imported used vehicles count in the year they arrived,
+                not their build year. Because the register holds the
+                current state only, older bars shrink through attrition,
+                not through declining registrations.
               </li>
               <li>
                 Figures include all vehicle types unless stated otherwise;
