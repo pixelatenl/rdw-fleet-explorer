@@ -19,10 +19,10 @@ export default function Home() {
         <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
           Dutch open data, visualized by Pixelate
         </p>
-        <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-          How fast is the Netherlands going electric?
+        <h1 className="max-w-5xl text-4xl font-bold tracking-tight sm:text-5xl">
+          How electric is the Dutch fleet?
         </h1>
-        <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+        <p className="mt-4 max-w-5xl text-lg text-muted-foreground">
           Live aggregates from the complete RDW vehicle register, more than{" "}
           {formatNumber(snapshot.totals.vehicles)} vehicles, refreshed
           weekly and rendered straight into this page. This is version one
