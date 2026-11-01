@@ -19,14 +19,14 @@ const WIDTH = 720;
 const PAD_X = 14;
 const PANEL_HEIGHT = 130;
 const MASS_TITLE_Y = 12;
-const MASS_TOP = 22;
-const ENGINE_TITLE_Y = 184;
-const ENGINE_TOP = 194;
+const MASS_TOP = 34;
+const ENGINE_TITLE_Y = 194;
+const ENGINE_TOP = 216;
 const LABEL_PAD = 54;
 const AXIS_Y = ENGINE_TOP + PANEL_HEIGHT;
 const TICK_BOTTOM = AXIS_Y + 6;
 const TICK_LABEL_Y = AXIS_Y + 18;
-const HEIGHT = 352;
+const HEIGHT = 374;
 const DECADES = [1980, 1990, 2000, 2010, 2020];
 
 interface Panel {
