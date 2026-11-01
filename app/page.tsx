@@ -10,6 +10,7 @@ import { ElectricSplitChart } from "@/components/electric-split-chart";
 import { FuelRegistrationsChart } from "@/components/fuel-registrations-chart";
 import { VehicleTypesChart } from "@/components/vehicle-types-chart";
 import { RegistrationYearChart } from "@/components/registration-year-chart";
+import { HeavyTurnChart } from "@/components/heavy-turn-chart";
 import { snapshot, formatNumber, formatDate } from "@/data/snapshot";
 
 export default function Home() {
@@ -126,6 +127,28 @@ export default function Home() {
       <section className="mb-12">
         <Card>
           <CardHeader>
+            <CardTitle className="text-xl">The heavy turn</CardTitle>
+            <CardDescription>
+              Average mass and engine size of passenger cars by the year
+              they were first registered in the Netherlands. Engines
+              shrank for four decades while cars grew heavier; both trends
+              bend around 2017 to 2020, where electrification arrives. The
+              most recent cohort is a partial year.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <HeavyTurnChart />
+            <p className="mt-4 text-sm text-muted-foreground">
+              Both series are means per first-registration-year cohort,
+              not medians.
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mb-12">
+        <Card>
+          <CardHeader>
             <CardTitle className="text-xl">Method and sources</CardTitle>
             <CardDescription>
               Every figure on this page is a server-side aggregation of the
@@ -154,6 +177,18 @@ export default function Home() {
                 Aggregations are computed with server-side queries against
                 the RDW API; no raw vehicle records are stored or published.
                 No personal owner data exists in this source.
+              </li>
+              <li>
+                The heavy turn: SoQL averages of{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  massa_ledig_voertuig
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+                  cilinderinhoud
+                </code>{" "}
+                per first-admission-year cohort of passenger cars from 1975
+                on; cohorts under 1,000 vehicles are excluded.
               </li>
               <li>
                 Figures include all vehicle types unless stated otherwise;

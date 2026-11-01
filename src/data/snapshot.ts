@@ -11,6 +11,13 @@ export interface YearCount {
   count: number;
 }
 
+export interface HeavyTurnYear {
+  year: number;
+  avgMass: number;
+  avgEngineSize: number;
+  count: number;
+}
+
 export interface Snapshot {
   retrievedAt: string;
   source: {
@@ -29,6 +36,8 @@ export interface Snapshot {
   vehicleTypes: LabeledCount[];
   registrationYears: YearCount[];
   registrationYearsUnknown: number;
+  massByYear: HeavyTurnYear[];
+  engineSizeByYear: HeavyTurnYear[];
 }
 
 export const snapshot = raw as Snapshot;
