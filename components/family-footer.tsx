@@ -14,7 +14,7 @@ export function FamilyFooter() {
           <p>
             Data:{" "}
             <Link
-              href={`${snapshot.source.url}/resource/${snapshot.source.datasets.base}.json`}
+              href={`${snapshot.source.url}/resource/${snapshot.source.datasets.base}`}
               className="underline underline-offset-4 hover:text-foreground"
             >
               RDW Open Data

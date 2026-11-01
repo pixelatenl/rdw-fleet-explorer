@@ -13,8 +13,29 @@ import { RegistrationYearChart } from "@/components/registration-year-chart";
 import { snapshot, formatNumber } from "@/data/snapshot";
 
 export default function Home() {
+  const datasetJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: "Dutch fleet aggregates from the RDW vehicle register",
+    description:
+      "How electric is the Dutch fleet? Live aggregates from the complete RDW vehicle register, refreshed weekly and visualized by Pixelate.",
+    url: "https://fleet.pixelate.nl",
+    isAccessibleForFree: true,
+    license: "https://creativecommons.org/publicdomain/zero/1.0/",
+    creator: {
+      "@type": "Organization",
+      name: "Pixelate BV",
+      url: "https://pixelate.nl",
+    },
+    dateModified: snapshot.retrievedAt,
+  };
+
   return (
     <div className="mx-auto max-w-[1536px] px-4 py-10 sm:px-6 sm:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }}
+      />
       <section className="mb-12">
         <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
           Dutch open data, visualized by Pixelate
