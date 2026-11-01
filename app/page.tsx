@@ -102,7 +102,8 @@ export default function Home() {
           <CardHeader>
             <CardTitle className="text-xl">The electric fleet, split by drivetrain</CardTitle>
             <CardDescription>
-              Every vehicle in the register that lists{" "}
+              Every motor vehicle in the register, mopeds and motorcycles
+              included, that lists{" "}
               <span className="text-brand-accent">electricity</span> as one
               of its fuels, grouped by its recorded hybrid class.{" "}
               {fuelCellHydrogen &&
@@ -283,7 +284,9 @@ export default function Home() {
               <li>
                 Figures include all vehicle types unless stated otherwise;
                 trailers and similar vehicles without fuel data are excluded
-                from fuel-based shares.
+                from fuel-based shares. The fuel-data total covers all motor
+                vehicles, mopeds and motorcycles included, so the drivetrain
+                figures are motor vehicle figures, not car figures.
               </li>
               <li className="text-xs">
                 Photo by{" "}
