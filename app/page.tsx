@@ -10,7 +10,7 @@ import { ElectricSplitChart } from "@/components/electric-split-chart";
 import { FuelRegistrationsChart } from "@/components/fuel-registrations-chart";
 import { VehicleTypesChart } from "@/components/vehicle-types-chart";
 import { RegistrationYearChart } from "@/components/registration-year-chart";
-import { snapshot, formatNumber } from "@/data/snapshot";
+import { snapshot, formatNumber, formatDate } from "@/data/snapshot";
 
 export default function Home() {
   const datasetJsonLd = {
@@ -48,6 +48,9 @@ export default function Home() {
           {formatNumber(snapshot.totals.vehicles)} vehicles, refreshed
           weekly and rendered straight into this page. This is version one
           of a growing family of open data products.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Data received on {formatDate(snapshot.retrievedAt)}.
         </p>
 
         <div className="mt-8">
