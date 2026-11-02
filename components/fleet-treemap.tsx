@@ -341,7 +341,6 @@ export function FleetTreemap() {
 
           const tileStyle = {
             ...positionStyle,
-            "--fleet-tile-edge": `color-mix(in oklab, ${rect.colorToken} 75%, var(--fleet-tile-edge-mix))`,
             "--fleet-tile-ink": rect.inkToken,
           } as CSSProperties;
 

@@ -162,9 +162,8 @@
   --fleet-ink-ovc-hev: var(--card-foreground);
   --fleet-ink-fchv: #ffffff;
 
-  /* Duotone photo blend and tile edge treatment. */
+  /* Duotone photo blend. */
   --fleet-photo-opacity: 0.45;
-  --fleet-tile-edge-mix: #fff;
 }
 
 .dark {
@@ -247,16 +246,14 @@
 }
 
 /*
-  Fleet treemap depth and motion. Tiles carry a subtle 1px inner edge in
-  a lighter variant of their own token color (set per tile through the
-  --fleet-tile-edge custom property), and lift on hover and keyboard
-  focus. The photo layer reads as duotone texture: grayscale, luminosity
+  Fleet treemap depth and motion. Tiles lift on hover and keyboard
+  focus, dropping a soft shadow beneath them. The photo layer reads as
+  duotone texture: grayscale, luminosity
   blended into the token base fill, slowly panning inside the clipped
   tile. Everything is disabled under prefers-reduced-motion.
 */
 .fleet-tile {
   border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--fleet-tile-edge);
   transition:
     transform 200ms ease-out,
     box-shadow 200ms ease-out;
@@ -265,9 +262,7 @@
 .fleet-tile:hover,
 .fleet-tile:focus-visible {
   transform: translateY(-2px);
-  box-shadow:
-    inset 0 0 0 1px var(--fleet-tile-edge),
-    0 10px 20px -8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.35);
 }
 
 @keyframes fleet-photo-pan {
