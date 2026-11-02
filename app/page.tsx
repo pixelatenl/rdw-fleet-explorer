@@ -270,13 +270,7 @@ export default function Home() {
           />
           <div className="relative flex flex-col gap-5 p-6 sm:gap-6 sm:p-10 lg:p-12">
             <p
-              className="self-start rounded-full px-3 py-1 text-sm font-medium tracking-wide text-primary uppercase"
-              style={{
-                // Translucent foreground scrim, the same chip treatment
-                // as the share pill on the treemap tiles.
-                backgroundColor:
-                  "color-mix(in oklab, var(--foreground) 10%, transparent)",
-              }}
+              className="self-start rounded-full bg-primary px-3 py-1 text-sm font-medium tracking-wide text-primary-foreground uppercase"
             >
               A completely unrelated reward
             </p>
