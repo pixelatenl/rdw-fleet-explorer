@@ -25,8 +25,9 @@ const SEGMENT_GAP_PX = 4;
  * Each segment fills flat with its drivetrain token, the same palette
  * as the treemap tiles above; a small gap separates the segments and
  * pads the track inside its border, so each category reads as its own
- * block; hover, focus and tap tooltips come from the shared client
- * tooltip component.
+ * softly rounded block, the same corner radius as its legend swatch;
+ * hover, focus and tap tooltips come from the shared client tooltip
+ * component.
  */
 export function ElectricSplitChart() {
   const segments = snapshot.electricSplit;
@@ -56,7 +57,7 @@ export function ElectricSplitChart() {
               {(trigger) => (
                 <div
                   {...trigger}
-                  className="chart-tooltip-trigger"
+                  className="chart-tooltip-trigger rounded-sm"
                   style={{
                     width: `calc(${trackWidth} * ${Math.max(width, 0.5) / 100})`,
                     backgroundColor: token,
