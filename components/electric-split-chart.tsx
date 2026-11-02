@@ -23,9 +23,10 @@ const SEGMENT_GAP_PX = 4;
  * One stacked bar: all vehicles with electric drive, split into
  * battery electric, full hybrid, plug-in hybrid and fuel cell hybrid.
  * Each segment fills flat with its drivetrain token, the same palette
- * as the treemap tiles above, and a small gap separates the segments
- * so each category reads as its own block; hover, focus and tap
- * tooltips come from the shared client tooltip component.
+ * as the treemap tiles above; a small gap separates the segments and
+ * pads the track inside its border, so each category reads as its own
+ * block; hover, focus and tap tooltips come from the shared client
+ * tooltip component.
  */
 export function ElectricSplitChart() {
   const segments = snapshot.electricSplit;
@@ -37,7 +38,7 @@ export function ElectricSplitChart() {
     <figure>
       <div
         className="flex h-12 w-full overflow-hidden rounded-md border border-border"
-        style={{ gap: SEGMENT_GAP_PX }}
+        style={{ gap: SEGMENT_GAP_PX, padding: SEGMENT_GAP_PX }}
         role="img"
         aria-label={`Of ${formatNumber(electricVehicles)} vehicles with electric drive, ${formatNumber(segments[0].count)} are battery electric, ${formatNumber(segments[1].count)} are full hybrid, ${formatNumber(segments[2].count)} are plug-in hybrid and ${formatNumber(segments[3].count)} are fuel cell hybrid.`}
       >
