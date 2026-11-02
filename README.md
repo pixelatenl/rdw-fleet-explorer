@@ -1,8 +1,8 @@
 # Dutch Fleet Electrification Explorer
 
-How fast is the Netherlands going electric? This site aggregates the complete RDW vehicle register, more than 16.8 million vehicles, and visualizes the electrification of the Dutch fleet. It is the first product in the Pixelate open data family: separate product sites sharing one theme, each linking back to a launcher hub.
+How electric is the Dutch fleet? This site aggregates the complete RDW vehicle register, more than 16.8 million vehicles, and visualizes the electrification of the Dutch fleet. It is the first product in the Pixelate open data family: separate product sites sharing one theme, each linking back to a launcher hub.
 
-Built by [Pixelate BV](https://pixelate.nl). Live at fleet.pixelate.nl once deployed.
+Built by [Pixelate BV](https://pixelate.nl). Live at [fleet.pixelate.nl](https://fleet.pixelate.nl).
 
 ## Stack
 
@@ -36,6 +36,8 @@ Current snapshot aggregates:
 - Electric drivetrain split (battery electric, full hybrid, plug-in hybrid, fuel cell hybrid)
 - Fleet composition by vehicle type
 - Vehicles by year of first Dutch registration
+- Average mass and engine size of passenger cars by year of first admission, with the engine coverage count
+- Fuel cell hybrid vehicles by recorded fuel
 
 Provenance: RDW Open Data, datasets `m9d7-ebf2` and `8ys7-d773`, CC0 1.0. The RDW gives no actuality guarantee, so the snapshot records its retrieval date and the site displays it.
 
@@ -45,7 +47,7 @@ The family theme is defined once in `app/globals.css`: the shadcn/ui default tok
 
 ## Deployment
 
-Mirrors the pixelate.nl pattern: a GitHub Actions workflow builds the static export and uploads it as an artifact. Upload the artifact contents to the fleet.pixelate.nl directory on the Apache host. FTP credentials belong only in Actions secrets if the upload step is automated later.
+Every push to main runs the build workflow (`.github/workflows/build.yml`), which builds the static export and publishes `out/` to the `deploy` branch as a single clean commit via [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages) with force orphan. The Cloud86 deploy tool then copies the `deploy` branch to the fleet.pixelate.nl webroot, triggered by the Plesk webhook on every push. Rollback is a commit revert on main.
 
 ## Roadmap
 
