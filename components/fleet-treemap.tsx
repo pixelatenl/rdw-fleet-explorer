@@ -399,7 +399,8 @@ export function FleetTreemap() {
                       className="absolute top-2 left-2 flex items-center gap-1"
                       style={{
                         color: "var(--fleet-tile-ink)",
-                        filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.55))",
+                        filter:
+                          "drop-shadow(0 2px 2px rgb(0 0 0 / 0.5)) drop-shadow(0 4px 8px rgb(0 0 0 / 0.45))",
                       }}
                     >
                       {(rect.icons ?? []).map((icon) =>
