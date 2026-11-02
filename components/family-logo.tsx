@@ -10,12 +10,12 @@ export function FamilyLogo() {
   return (
     <span
       aria-hidden="true"
-      className="grid size-10 shrink-0 grid-cols-3 gap-[4px]"
+      className="grid size-8 shrink-0 grid-cols-3 gap-[4px]"
     >
       {PIXELS.map((filled, index) => (
         <span
           key={index}
-          className={filled ? "rounded-[3px] bg-primary" : "rounded-[3px]"}
+          className={filled ? "rounded-full bg-primary" : "rounded-full"}
         />
       ))}
     </span>
