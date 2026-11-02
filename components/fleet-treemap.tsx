@@ -42,7 +42,7 @@ const MIN_TEXT_HEIGHT_PX = 52;
 const MIN_ICON_WIDTH_PX = 48;
 const MIN_ICON_HEIGHT_PX = 40;
 /** Energy icon size, in px. */
-const ICON_PX = 16;
+const ICON_PX = 40;
 /** Count-up: short delay, then two seconds of slow-to-fast easing. */
 const COUNT_UP_DELAY_MS = 300;
 const COUNT_UP_MS = 2000;
