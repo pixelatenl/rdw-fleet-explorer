@@ -115,10 +115,10 @@ function buildTiles(): FleetTile[] {
 
 /** Count typography scales with the tile's share of the fleet, not by key. */
 function countSizeClass(share: number): string {
-  if (share > 0.5) return "text-5xl";
-  if (share > 0.07) return "text-3xl";
-  if (share > 0.05) return "text-2xl";
-  return "text-xl";
+  if (share > 0.5) return "text-6xl";
+  if (share > 0.07) return "text-4xl";
+  if (share > 0.05) return "text-3xl";
+  return "text-2xl";
 }
 
 /** Neutral strip line shown when no tile is hovered or focused. */
@@ -429,12 +429,12 @@ export function FleetTreemap() {
                       </p>
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                         <p
-                          className={`font-semibold tabular-nums ${countSizeClass(share)}`}
+                          className={`font-bold tabular-nums ${countSizeClass(share)}`}
                         >
                           {formatNumber(Math.round(rect.count * countProgress))}
                         </p>
                         <span
-                          className="rounded-full px-2 py-0.5 text-[10px] font-medium tabular-nums"
+                          className="rounded-full px-2 py-0.5 text-sm font-medium tabular-nums"
                           style={{
                             backgroundColor: `color-mix(in oklab, ${rect.colorToken} 22%, transparent)`,
                           }}
