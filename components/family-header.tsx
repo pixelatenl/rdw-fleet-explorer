@@ -26,12 +26,6 @@ export function FamilyHeader() {
           </span>
         </div>
         <nav className="flex items-center gap-1" aria-label="Site">
-          <Link
-            href={FAMILY.launcherUrl}
-            className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            {FAMILY.launcherLabel}
-          </Link>
           <ThemeToggle />
         </nav>
       </div>
