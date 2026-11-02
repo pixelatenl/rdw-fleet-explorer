@@ -15,6 +15,7 @@ import path from "node:path";
 const BASE = "https://opendata.rdw.nl/resource";
 const DATASET_BASE = "m9d7-ebf2";
 const DATASET_FUEL = "8ys7-d773";
+const DATASET_FERRARI = "pmhw-w82q";
 
 async function query(dataset, soql) {
   const url = `${BASE}/${dataset}.json?$query=${encodeURIComponent(soql)}`;
@@ -27,6 +28,32 @@ async function query(dataset, soql) {
     );
   }
   return response.json();
+}
+
+/*
+  Full fetch of the Ferrari brand extract, paged through the SODA
+  offset limit (the API caps a single response well below the size of
+  the extract). The view is small and keyless, so the snapshot job
+  pulls every record once a week and aggregates locally; only the
+  fields the Ferrari figures need are selected. Paging is ordered by
+  kenteken: SODA offset paging without an order clause is not stable,
+  and the row order can shift between pages mid-fetch.
+*/
+const FERRARI_PAGE_SIZE = 1000;
+
+async function fetchFerrariRecords() {
+  const records = [];
+  let offset = 0;
+  for (;;) {
+    const page = await query(
+      DATASET_FERRARI,
+      `select kenteken, voertuigsoort, handelsbenaming, eerste_kleur ` +
+        `order by kenteken limit ${FERRARI_PAGE_SIZE} offset ${offset}`
+    );
+    records.push(...page);
+    if (page.length < FERRARI_PAGE_SIZE) return records;
+    offset += FERRARI_PAGE_SIZE;
+  }
 }
 
 const fuelLabelByKey = {
@@ -181,6 +208,56 @@ async function main() {
     "select count(1) as vehicles"
   );
 
+  /*
+    Ferrari coda: every figure of the closing card, aggregated from the
+    full Ferrari brand extract. The extract is a filtered view of the
+    register holding every vehicle with merk FERRARI, and Ferrari is
+    also an Italian tractor manufacturer, so the tractors are part of
+    the same register. Colour values are stored uppercase (ROOD) and
+    tractors carry "N.v.t." or nothing where no colour is recorded.
+    The model figures match the register's handelsbenaming exactly:
+    the register lists the bare model number for the 458 and the bare
+    name for the California, which is what makes them the tied most
+    common models; named variants (458 SPIDER, CALIFORNIA T) are
+    separate handelsbenaming values.
+  */
+  const ferrariRecords = await fetchFerrariRecords();
+  const ferrariTractors = ferrariRecords.filter(
+    (row) => row.voertuigsoort === "Land- of bosbouwtrekker"
+  );
+  const ferrariColor = (row) => (row.eerste_kleur ?? "").trim();
+  const ferrariName = (row) => (row.handelsbenaming ?? "").trim();
+  const tractorModelCounts = new Map();
+  for (const row of ferrariTractors) {
+    const name = ferrariName(row);
+    // The register records ONBEKEND (and similar) where the model is
+    // unknown; those records cannot crown a most common model.
+    if (!name || /^onbekend/i.test(name)) continue;
+    tractorModelCounts.set(name, (tractorModelCounts.get(name) ?? 0) + 1);
+  }
+  const [topTractorName, topTractorCount] =
+    [...tractorModelCounts.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
+  const ferrari = {
+    total: ferrariRecords.length,
+    red: ferrariRecords.filter((row) => ferrariColor(row).toUpperCase() === "ROOD")
+      .length,
+    model458: ferrariRecords.filter((row) => ferrariName(row) === "458").length,
+    california: ferrariRecords.filter(
+      (row) => ferrariName(row) === "CALIFORNIA"
+    ).length,
+    tractors: ferrariTractors.length,
+    tractorsTopModel: topTractorName
+      ? { name: topTractorName, count: topTractorCount }
+      : null,
+    tractorsWithColor: ferrariTractors.filter((row) => {
+      const color = ferrariColor(row);
+      return color !== "" && color !== "N.v.t.";
+    }).length,
+    motorcycle: ferrariRecords.filter(
+      (row) => row.voertuigsoort === "Motorfiets"
+    ).length,
+  };
+
   // Fuel registrations; unlabelled rows are kept as Unknown.
   const fuelRegistrations = fuelComposition.map((row) => ({
     key: (row.brandstof_omschrijving ?? "onbekend").toLowerCase(),
@@ -308,7 +385,11 @@ async function main() {
       name: "RDW Open Data",
       url: "https://opendata.rdw.nl",
       license: "CC0 1.0",
-      datasets: { base: DATASET_BASE, fuel: DATASET_FUEL },
+      datasets: {
+        base: DATASET_BASE,
+        fuel: DATASET_FUEL,
+        ferrari: DATASET_FERRARI,
+      },
     },
     totals: {
       vehicles: Number(vehicles[0].vehicles),
@@ -323,6 +404,7 @@ async function main() {
     registrationYearsUnknown,
     massByYear,
     engineSizeByYear,
+    ferrari,
   };
 
   const dir = path.join(
@@ -339,6 +421,11 @@ async function main() {
   console.log(
     `Snapshot written to ${target}: ${snapshot.totals.vehicles} vehicles, ` +
       `${electricTotal} with electric drive, retrieved ${snapshot.retrievedAt}.`
+  );
+  console.log(
+    `Ferrari coda: ${ferrari.total} vehicles, ` +
+      `${ferrari.tractors} tractors, top model ` +
+      `${ferrari.tractorsTopModel ? `${ferrari.tractorsTopModel.name} (${ferrari.tractorsTopModel.count})` : "none"}.`
   );
 }
 

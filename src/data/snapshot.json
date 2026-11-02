@@ -6,7 +6,8 @@
     "license": "CC0 1.0",
     "datasets": {
       "base": "m9d7-ebf2",
-      "fuel": "8ys7-d773"
+      "fuel": "8ys7-d773",
+      "ferrari": "pmhw-w82q"
     }
   },
   "totals": {
@@ -270,5 +271,18 @@
     { "year": 2024, "avgMass": 1558, "avgEngineSize": 1517, "count": 463751, "withEngine": 324727 },
     { "year": 2025, "avgMass": 1630, "avgEngineSize": 1570, "count": 454206, "withEngine": 289299 },
     { "year": 2026, "avgMass": 1668, "avgEngineSize": 1613, "count": 312456, "withEngine": 183258 }
-  ]
+  ],
+  "ferrari": {
+    "total": 5043,
+    "red": 1941,
+    "model458": 253,
+    "california": 253,
+    "tractors": 461,
+    "tractorsTopModel": {
+      "name": "RAPTOR 40DT",
+      "count": 60
+    },
+    "tractorsWithColor": 0,
+    "motorcycle": 1
+  }
 }

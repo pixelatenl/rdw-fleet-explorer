@@ -20,13 +20,31 @@ export interface HeavyTurnYear {
   withEngine?: number;
 }
 
+/** Most common handelsbenaming among the Ferrari tractors, null if none. */
+export interface FerrariTopModel {
+  name: string;
+  count: number;
+}
+
+/** Figures of the closing Ferrari card, from the RDW Ferrari brand extract. */
+export interface Ferrari {
+  total: number;
+  red: number;
+  model458: number;
+  california: number;
+  tractors: number;
+  tractorsTopModel: FerrariTopModel | null;
+  tractorsWithColor: number;
+  motorcycle: number;
+}
+
 export interface Snapshot {
   retrievedAt: string;
   source: {
     name: string;
     url: string;
     license: string;
-    datasets: { base: string; fuel: string };
+    datasets: { base: string; fuel: string; ferrari: string };
   };
   totals: {
     vehicles: number;
@@ -41,6 +59,7 @@ export interface Snapshot {
   registrationYearsUnknown: number;
   massByYear: HeavyTurnYear[];
   engineSizeByYear: HeavyTurnYear[];
+  ferrari: Ferrari;
 }
 
 export const snapshot = raw as Snapshot;

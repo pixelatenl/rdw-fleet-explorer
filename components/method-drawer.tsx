@@ -19,10 +19,14 @@ export function MethodDrawer() {
           Source: RDW Open Data, datasets{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-foreground">
             {snapshot.source.datasets.base}
-          </code>{" "}
-          and{" "}
+          </code>
+          ,{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-foreground">
             {snapshot.source.datasets.fuel}
+          </code>
+          , and the Ferrari brand extract{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+            {snapshot.source.datasets.ferrari}
           </code>
           , license {snapshot.source.license}.
         </li>
@@ -77,6 +81,25 @@ export function MethodDrawer() {
           </code>{" "}
           row, which is why the electric split counts only the
           electricity-listing portion.
+        </li>
+        <li>
+          The closing Ferrari card is derived from a full fetch of the
+          Ferrari brand extract, a filtered view of the same register
+          holding every vehicle with{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+            merk
+          </code>{" "}
+          FERRARI. Every figure is counted from the raw record values
+          at snapshot time: color is the recorded{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+            eerste_kleur
+          </code>
+          , and the model figures match the register&apos;s{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-foreground">
+            handelsbenaming
+          </code>{" "}
+          exactly, which is what makes the 458 and the California the
+          tied most common models. No raw records are stored.
         </li>
         <li>
           Entry year is the first registration in the Netherlands,
@@ -158,6 +181,23 @@ export function MethodDrawer() {
           <a
             className="underline underline-offset-2 hover:text-foreground"
             href="https://unsplash.com/photos/a-grey-suv-parked-on-a-gravel-road-02vF_ow1ISE"
+          >
+            Unsplash
+          </a>
+          .
+        </li>
+        <li className="text-xs">
+          Photo by{" "}
+          <a
+            className="underline underline-offset-2 hover:text-foreground"
+            href="https://unsplash.com/@martinkatler"
+          >
+            Martin Katler
+          </a>{" "}
+          on{" "}
+          <a
+            className="underline underline-offset-2 hover:text-foreground"
+            href="https://unsplash.com/photos/red-ferrari-458-italia-on-road-during-daytime-WTN4tbN_tNQ"
           >
             Unsplash
           </a>

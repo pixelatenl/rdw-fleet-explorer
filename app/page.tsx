@@ -52,6 +52,47 @@ export default function Home() {
   const latestEntryYear =
     snapshot.registrationYears[snapshot.registrationYears.length - 1]?.year;
 
+  /*
+    Ferrari coda: every figure of the closing card, from the snapshot
+    only. The copy is assembled sentence by sentence so two omissions
+    can keep the humor truthful as the data drifts: the Raptor quip
+    renders only while the top tractor model is a Raptor, and the
+    not-one-red sentence only while the register records no tractor
+    color at all.
+  */
+  const ferrari = snapshot.ferrari;
+  const codaSentences = [
+    `You made it to the end of a page about vehicle data, so here is your reward: the Dutch register counts ${formatNumber(ferrari.total)} Ferraris.`,
+    `${formatNumber(ferrari.red)} of them are red, because of course they are.`,
+    `The most common model is the 458, with ${formatNumber(ferrari.model458)} on the road, the exact car in this photo, tied with the California (${formatNumber(ferrari.california)}).`,
+    `Also registered: ${formatNumber(ferrari.tractors)} Ferrari tractors, from a different Italian company with the same name.`,
+  ];
+  if (ferrari.tractorsTopModel) {
+    codaSentences.push(
+      `The most common model is the ${ferrari.tractorsTopModel.name}, ${formatNumber(ferrari.tractorsTopModel.count)} strong.`,
+    );
+    if (ferrari.tractorsTopModel.name.startsWith("RAPTOR")) {
+      codaSentences.push("A Ferrari Raptor.");
+    }
+  }
+  if (ferrari.tractorsWithColor === 0) {
+    codaSentences.push(
+      "And not one of them is red, at least on paper: the register does not record a color for a single tractor.",
+    );
+  }
+  codaSentences.push(
+    "And one Ferrari motorcycle, which raises questions we will not answer here.",
+  );
+  const codaCopy = codaSentences.join(" ");
+
+  const codaStats = [
+    { label: "Total Ferraris", value: ferrari.total, accent: true },
+    { label: "Red", value: ferrari.red, accent: false },
+    { label: "458s", value: ferrari.model458, accent: false },
+    { label: "Tractors", value: ferrari.tractors, accent: false },
+    { label: "Motorcycle", value: ferrari.motorcycle, accent: false },
+  ];
+
   const datasetJsonLd = {
     "@context": "https://schema.org",
     "@type": "Dataset",
@@ -201,6 +242,70 @@ export default function Home() {
             </p>
           </CardContent>
         </Card>
+      </section>
+
+      {/*
+        The coda: deliberately not a Card. A full-bleed photo inside the
+        page container, with every figure derived from snapshot.ferrari
+        at render time. The photo layer and the themed gradient sit
+        behind the content, so the copy, stat row, and closing line
+        stay legible in both themes.
+      */}
+      <section>
+        <div className="relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-2xl sm:min-h-[34rem] lg:min-h-[70vh]">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-cover"
+            style={{
+              backgroundImage:
+                'url("/images/ferrari-458-martin-katler.jpg")',
+              // The car sits around mid-height of the portrait photo;
+              // biasing the crop upward keeps it clear of the copy.
+              backgroundPosition: "center 40%",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="ferrari-coda-overlay absolute inset-0"
+          />
+          <div className="relative flex flex-col gap-5 p-6 sm:gap-6 sm:p-10 lg:p-12">
+            <p className="text-sm font-medium tracking-wide text-primary uppercase">
+              A completely unrelated reward
+            </p>
+            <h2 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+              The Netherlands has{" "}
+              <span className="text-brand-accent">
+                {formatNumber(ferrari.total)}
+              </span>{" "}
+              Ferraris
+            </h2>
+            <p className="max-w-3xl text-base leading-relaxed sm:text-lg">
+              {codaCopy}
+            </p>
+            <div className="grid grid-cols-2 gap-x-10 gap-y-6 sm:grid-cols-3 lg:grid-cols-5 lg:gap-x-14 lg:gap-y-0">
+              {codaStats.map((stat) => (
+                <div key={stat.label}>
+                  <p
+                    className={`text-4xl font-bold tabular-nums sm:text-5xl ${
+                      stat.accent
+                        ? "text-brand-accent"
+                        : "text-foreground"
+                    }`}
+                  >
+                    {formatNumber(stat.value)}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              How electric is the Dutch fleet? These are not the numbers
+              that will tell you.
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   );
