@@ -143,10 +143,10 @@
 
 /*
   Fleet treemap tile treatment. Tiles fill flat with the drivetrain
-  tokens above; the no-electric tile pins the light-theme chart-5 mint
-  (#86d6e5) in both themes, so it keeps one identity regardless of
-  theme, and tile text sits on a readability gradient of the tile
-  color at 90% opacity over the duotone photo. Because the flat fills
+  tokens above; the no-electric tile pins one mid teal in both themes
+  (the light chart-5 mint shaded a step darker, so the tile does not
+  read faded), and tile text sits on a readability gradient of the
+  tile color at 90% opacity over the duotone photo. Because the flat fills
   no longer shade toward the theme surface, each tile also carries a
   per-key ink token that keeps the text layer at roughly 4.5 to 1: the
   dark theme's fills are all bright hues, so every tile flips to the
@@ -155,7 +155,7 @@
   which take white.
 */
 :root {
-  --fleet-tile-no-electric: #86d6e5;
+  --fleet-tile-no-electric: #66a5b1;
   --fleet-ink-no-electric: var(--card-foreground);
   --fleet-ink-bev: var(--card-foreground);
   --fleet-ink-novc-hev: #ffffff;
@@ -196,7 +196,7 @@
 }
 
 .dark {
-  --fleet-tile-no-electric: #86d6e5;
+  --fleet-tile-no-electric: #66a5b1;
   --fleet-ink-no-electric: var(--primary-foreground);
   --fleet-ink-bev: var(--primary-foreground);
   --fleet-ink-novc-hev: var(--primary-foreground);
