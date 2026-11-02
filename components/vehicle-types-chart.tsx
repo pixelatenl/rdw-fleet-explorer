@@ -1,13 +1,12 @@
 "use client";
 
 import { snapshot, formatNumber, formatPercent } from "@/data/snapshot";
-import { ChartTooltip } from "@/components/ui/chart-tooltip";
 
 /**
  * Compact bar chart of the fleet by vehicle type, top six, with the
- * remainder grouped. CSS bars with token-derived gradients; the full
- * track is the hover, focus and tap target so every row gets a tooltip
- * even when its bar is very small.
+ * remainder grouped. CSS bars with token-derived gradients; every
+ * figure is printed beside its bar, and hovering a row highlights
+ * its bar with the brand accent.
  */
 export function VehicleTypesChart() {
   const rows = [...snapshot.vehicleTypes].sort((a, b) => b.count - a.count);
@@ -23,7 +22,7 @@ export function VehicleTypesChart() {
       {display.map((row, index) => {
         const share = row.count / total;
         return (
-          <li key={row.key} className="text-sm">
+          <li key={row.key} className="group text-sm">
             <div className="mb-1 flex items-baseline justify-between gap-2">
               <span className="text-muted-foreground">{row.label}</span>
               <span className="font-medium tabular-nums">
@@ -33,28 +32,12 @@ export function VehicleTypesChart() {
                 </span>
               </span>
             </div>
-            <ChartTooltip
-              label={row.label}
-              value={formatNumber(row.count)}
-              percent={formatPercent(share)}
-            >
-              {(trigger, active) => (
-                <div
-                  {...trigger}
-                  className="chart-tooltip-trigger h-2.5 w-full overflow-hidden rounded-full bg-[var(--chart-track)]"
-                >
-                  <div
-                    className={`h-full rounded-full chart-gradient-${index < 6 ? 2 : 5}`}
-                    style={{
-                      width: `${share * 100}%`,
-                      // While active the bar carries the accent outright;
-                      // the inline background overrides the token gradient.
-                      background: active ? "var(--brand-accent)" : undefined,
-                    }}
-                  />
-                </div>
-              )}
-            </ChartTooltip>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--chart-track)]">
+              <div
+                className={`h-full rounded-full chart-gradient-${index < 6 ? 2 : 5} group-hover:[background:var(--brand-accent)]`}
+                style={{ width: `${share * 100}%` }}
+              />
+            </div>
           </li>
         );
       })}
