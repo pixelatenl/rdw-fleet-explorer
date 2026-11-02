@@ -321,15 +321,15 @@
 
 @keyframes fleet-photo-pan {
   from {
-    transform: scale(1.06);
+    transform: scale(1.12) translate(-2%, -1.5%);
   }
   to {
-    transform: scale(1.12);
+    transform: scale(1.24) translate(2%, 1.5%);
   }
 }
 
 .fleet-photo {
-  transform: scale(1.06);
+  transform: scale(1.12) translate(-2%, -1.5%);
   filter: grayscale(1) contrast(1.05);
   mix-blend-mode: luminosity;
   opacity: var(--fleet-photo-opacity);
