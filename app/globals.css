@@ -96,24 +96,53 @@
 }
 
 /*
-  Fleet treemap tile surfaces. Tile text sits on a readability gradient
-  of these colors at 90% opacity over the duotone photo, so they must
-  keep text-card-foreground at a 4.5:1 contrast in both themes. The raw
-  chart tokens cannot (too dark for the dark light-theme text, too light
-  for the light dark-theme text), so each tile is a token-derived tint
-  mixed toward the theme surface here. The no-electric tile derives from
-  the darkest token and stays the most muted surface so it recedes,
-  while the electric tiles keep the brightest tints of the set.
+  Drivetrain palette: the four electrified drivetrains are categories,
+  not a sequence, so each gets its own distinct hue that pops in both
+  themes. Battery electric anchors on the brand teal; full hybrid takes
+  tones derived from the family orange; plug-in hybrid and fuel cell add
+  violet and rose so even the tiny fuel cell segment stays identifiable.
+  Contrast audit (3 to 1 minimum against the theme's surfaces, light
+  page #eaf6f9 / card #f6fbfc, dark #0f353d / #14414c): light bev is
+  darkened from the brand #48b9d1, which reaches only 2.2 to 1 on the
+  light surfaces, to #2e91a9 (3.3 to 1) while keeping the teal hue;
+  light hev 3.4 to 1, phev 4.8 to 1, fchv 5.1 to 1; dark bev 4.8 to 1,
+  hev 4.4 to 1, phev 3.7 to 1, fchv 3.7 to 1. Adjacent bar segments lean
+  on hue separation rather than 3 to 1 luminance steps: with every hue
+  already constrained to 3 to 1 against a light background, forcing 3 to
+  1 between all four neighbours would push two of the hues to near
+  black, which the distinct-hue design exists to avoid.
 */
 :root {
-  /* Battery electric: the brightest token, the eye lands here first. */
-  --fleet-tile-1: var(--chart-1);
-  --fleet-tile-2: color-mix(in oklab, var(--chart-2) 85%, var(--card));
-  --fleet-tile-3: color-mix(in oklab, var(--chart-3) 60%, var(--card));
-  --fleet-tile-4: color-mix(in oklab, var(--chart-4) 55%, var(--card));
-  /* No electric drive: darkest chart token, muted so it recedes, while
-     staying light enough for 4.5:1 text on the photo gradient. */
-  --fleet-tile-5: color-mix(in oklab, var(--chart-4) 52%, var(--card));
+  --drivetrain-bev: #2e91a9;
+  --drivetrain-hev: #c96a15;
+  --drivetrain-phev: #6d5bc6;
+  --drivetrain-fchv: #b33a6e;
+}
+
+.dark {
+  --drivetrain-bev: #48b9d1;
+  --drivetrain-hev: #f48822;
+  --drivetrain-phev: #9b8ce0;
+  --drivetrain-fchv: #e86ba4;
+}
+
+/*
+  Fleet treemap tile treatment. Tiles fill flat with the drivetrain
+  tokens above (the no-electric tile uses --chart-5), and tile text
+  sits on a readability gradient of the tile color at 90% opacity over
+  the duotone photo. Because the flat fills no longer shade toward the
+  theme surface, each tile also carries a per-key ink token that keeps
+  the text layer at roughly 4.5 to 1: the dark theme's fills are all
+  bright hues, so every tile flips to the dark ink there, while the
+  light theme keeps the dark foreground ink except on the two darker
+  hues (plug-in hybrid, fuel cell), which take white.
+*/
+:root {
+  --fleet-ink-no-electric: var(--card-foreground);
+  --fleet-ink-bev: var(--card-foreground);
+  --fleet-ink-novc-hev: var(--card-foreground);
+  --fleet-ink-ovc-hev: #ffffff;
+  --fleet-ink-fchv: #ffffff;
 
   /* Duotone photo blend and tile edge treatment. */
   --fleet-photo-opacity: 0.45;
@@ -121,11 +150,11 @@
 }
 
 .dark {
-  --fleet-tile-1: color-mix(in oklab, var(--chart-1) 16%, var(--background));
-  --fleet-tile-2: color-mix(in oklab, var(--chart-2) 12%, var(--background));
-  --fleet-tile-3: color-mix(in oklab, var(--chart-3) 10%, var(--background));
-  --fleet-tile-4: color-mix(in oklab, var(--chart-4) 11%, var(--background));
-  --fleet-tile-5: color-mix(in oklab, var(--chart-4) 8%, var(--background));
+  --fleet-ink-no-electric: var(--primary-foreground);
+  --fleet-ink-bev: var(--primary-foreground);
+  --fleet-ink-novc-hev: var(--primary-foreground);
+  --fleet-ink-ovc-hev: var(--primary-foreground);
+  --fleet-ink-fchv: var(--primary-foreground);
 
   --fleet-photo-opacity: 0.55;
 }

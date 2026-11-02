@@ -4,6 +4,8 @@ export interface TreemapInputItem {
   count: number;
   colorToken: string;
   image?: string;
+  /** Optional per-tile text color token, passed through to the rect. */
+  inkToken?: string;
 }
 
 export interface TreemapRect extends TreemapInputItem {

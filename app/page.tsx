@@ -11,7 +11,7 @@ import { FuelRegistrationsChart } from "@/components/fuel-registrations-chart";
 import { VehicleTypesChart } from "@/components/vehicle-types-chart";
 import { RegistrationYearChart } from "@/components/registration-year-chart";
 import { HeavyTurnChart } from "@/components/heavy-turn-chart";
-import { snapshot, formatNumber, formatDate } from "@/data/snapshot";
+import { snapshot, electricVehicles, formatNumber, formatDate } from "@/data/snapshot";
 
 export default function Home() {
   const latestCohort =
@@ -100,10 +100,12 @@ export default function Home() {
       <section className="mb-12">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">The electric fleet, split by drivetrain</CardTitle>
+            <CardTitle className="text-xl">The electric slice, in detail</CardTitle>
             <CardDescription>
-              Every motor vehicle in the register, mopeds and motorcycles
-              included, that lists{" "}
+              The treemap above shows the whole fleet; this view keeps only
+              the {formatNumber(electricVehicles)} vehicles with electric
+              drive and splits them by drivetrain. Every motor vehicle in
+              the register, mopeds and motorcycles included, that lists{" "}
               <span className="text-brand-accent">electricity</span> as one
               of its fuels, grouped by its recorded hybrid class.{" "}
               {fuelCellHydrogen &&
