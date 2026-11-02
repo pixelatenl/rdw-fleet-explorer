@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { Fuel, Zap } from "lucide-react";
 import {
   snapshot,
   electricVehicles,
@@ -14,6 +15,7 @@ import {
   formatNumber,
   formatPercent,
 } from "@/data/snapshot";
+import { ChartTooltip } from "@/components/ui/chart-tooltip";
 import {
   squarifiedTreemap,
   type TreemapInputItem,
@@ -36,13 +38,23 @@ const STACK_TOTAL_PX = 440;
 /** Tiles smaller than this in either dimension hide their text layer. */
 const MIN_TEXT_WIDTH_PX = 84;
 const MIN_TEXT_HEIGHT_PX = 52;
+/** Tiles smaller than this in either dimension hide their icon layer. */
+const MIN_ICON_WIDTH_PX = 48;
+const MIN_ICON_HEIGHT_PX = 40;
+/** Energy icon size, in px. */
+const ICON_PX = 16;
 /** Count-up: short delay, then two seconds of slow-to-fast easing. */
 const COUNT_UP_DELAY_MS = 300;
 const COUNT_UP_MS = 2000;
 
+/** Energy icons a drivetrain carries; see buildTiles for the mapping. */
+type IconName = "fuel" | "zap";
+
 interface FleetTile extends TreemapInputItem {
   /** Per-key text color token, chosen for contrast on the tile fill. */
   inkToken: string;
+  /** Energy icons shown in the tile's top-left corner. */
+  icons: IconName[];
 }
 
 /** The five drivetrain tiles, every count derived from the snapshot. */
@@ -60,7 +72,8 @@ function buildTiles(): FleetTile[] {
       count: withFuelData - electricVehicles,
       colorToken: "var(--fleet-tile-no-electric)",
       inkToken: "var(--fleet-ink-no-electric)",
-      image: "/images/gas-station-ali-mkumbwa.jpg",
+      icons: ["fuel"],
+      image: "/images/gas-station-onno-blaauw.jpg",
     },
     {
       key: "bev",
@@ -68,6 +81,7 @@ function buildTiles(): FleetTile[] {
       count: countOf("bev"),
       colorToken: "var(--drivetrain-bev)",
       inkToken: "var(--fleet-ink-bev)",
+      icons: ["zap"],
       image: "/images/ev-charging-chuttersnap.jpg",
     },
     {
@@ -76,6 +90,7 @@ function buildTiles(): FleetTile[] {
       count: countOf("novc-hev"),
       colorToken: "var(--drivetrain-hev)",
       inkToken: "var(--fleet-ink-novc-hev)",
+      icons: ["fuel"],
       image: "/images/hybrid-car-ivan-kazlouskij.jpg",
     },
     {
@@ -84,7 +99,8 @@ function buildTiles(): FleetTile[] {
       count: countOf("ovc-hev"),
       colorToken: "var(--drivetrain-phev)",
       inkToken: "var(--fleet-ink-ovc-hev)",
-      image: "/images/hybrid-car-ivan-kazlouskij.jpg",
+      icons: ["fuel", "zap"],
+      image: "/images/phev-suv-haberdoedas.jpg",
     },
     {
       key: "fchv",
@@ -92,6 +108,7 @@ function buildTiles(): FleetTile[] {
       count: countOf("fchv"),
       colorToken: "var(--drivetrain-fchv)",
       inkToken: "var(--fleet-ink-fchv)",
+      icons: ["zap"],
     },
   ];
 }
@@ -104,47 +121,72 @@ function countSizeClass(share: number): string {
   return "text-xl";
 }
 
-/**
- * The info strip line for the active tile, with every figure derived
- * from the snapshot. Null renders the neutral default line; the fuel
- * cell tile appends its fuel coverage facts, omitting any clause whose
- * snapshot entry is missing.
- */
-function stripLine(activeKey: string | null, tiles: FleetTile[]): string {
+/** Neutral strip line shown when no tile is hovered or focused. */
+function defaultStripLine(): string {
   const withFuelData = snapshot.totals.vehiclesWithFuelData;
-  const fallback = `Every tile is part of ${formatNumber(withFuelData)} vehicles with fuel data.`;
-  if (activeKey === null) return fallback;
+  return `Every tile is part of ${formatNumber(withFuelData)} vehicles with fuel data.`;
+}
 
-  const tile = tiles.find((entry) => entry.key === activeKey);
-  if (!tile) return fallback;
+/**
+ * The fuel cell coverage fact, derived from snapshot.fuelCellByFuel: the
+ * total over all recorded fuels plus the hydrogen and petrol entries.
+ * Returns null when there is nothing to report, so callers omit the
+ * sentence rather than print an undefined value.
+ */
+function fuelCellCoverageFact(): string | null {
+  const fuelCellTotal = snapshot.fuelCellByFuel.reduce(
+    (sum, entry) => sum + entry.count,
+    0,
+  );
+  if (fuelCellTotal <= 0) return null;
+  const hydrogen = snapshot.fuelCellByFuel.find(
+    (entry) => entry.key === "waterstof",
+  );
+  const petrol = snapshot.fuelCellByFuel.find(
+    (entry) => entry.key === "benzine",
+  );
+  const clauses: string[] = [];
+  if (hydrogen) clauses.push(`${formatNumber(hydrogen.count)} list hydrogen`);
+  if (petrol) clauses.push(`${formatNumber(petrol.count)} list petrol`);
+  if (clauses.length === 0) return null;
+  return `Across all ${formatNumber(fuelCellTotal)} fuel cell vehicles, ${clauses.join(" and ")} as a fuel.`;
+}
 
-  const fleetShare = formatPercent(tile.count / withFuelData);
+/** What the strip and the tooltip need to say about one tile. */
+interface TileNarrative {
+  /** Full info strip line for this tile. */
+  strip: string;
+  /** Context sentence for the tooltip's second line, null if none. */
+  context: string | null;
+}
+
+/**
+ * Per-tile narrative, derived from the snapshot at render time. Both
+ * surfaces that describe a tile — the info strip and the cursor
+ * tooltip — build their text here, so the two can never diverge.
+ */
+function tileNarrative(tile: {
+  key: string;
+  label: string;
+  count: number;
+}): TileNarrative {
+  const withFuelData = snapshot.totals.vehiclesWithFuelData;
+  const headline = `${tile.label}: ${formatNumber(tile.count)} vehicles, ${formatPercent(tile.count / withFuelData)} of the fleet`;
   if (tile.key === "fchv") {
-    let line = `${tile.label}: ${formatNumber(tile.count)} vehicles, ${fleetShare} of the fleet.`;
-    const fuelCellTotal = snapshot.fuelCellByFuel.reduce(
-      (sum, entry) => sum + entry.count,
-      0,
-    );
-    if (fuelCellTotal > 0) {
-      const hydrogen = snapshot.fuelCellByFuel.find(
-        (entry) => entry.key === "waterstof",
-      );
-      const petrol = snapshot.fuelCellByFuel.find(
-        (entry) => entry.key === "benzine",
-      );
-      const clauses: string[] = [];
-      if (hydrogen) clauses.push(`${formatNumber(hydrogen.count)} list hydrogen`);
-      if (petrol) clauses.push(`${formatNumber(petrol.count)} list petrol`);
-      if (clauses.length > 0) {
-        line += ` Across all ${formatNumber(fuelCellTotal)} fuel cell vehicles, ${clauses.join(" and ")} as a fuel.`;
-      }
-    }
-    return line;
+    const coverage = fuelCellCoverageFact();
+    return {
+      strip: coverage ? `${headline}. ${coverage}` : `${headline}.`,
+      context: coverage,
+    };
   }
   if (tile.key === "no-electric") {
-    return `${tile.label}: ${formatNumber(tile.count)} vehicles, ${fleetShare} of the fleet.`;
+    return { strip: `${headline}.`, context: null };
   }
-  return `${tile.label}: ${formatNumber(tile.count)} vehicles, ${fleetShare} of the fleet and ${formatPercent(tile.count / electricVehicles)} of the ${formatNumber(electricVehicles)} vehicles with electric drive.`;
+  const zoomTail = `${formatPercent(tile.count / electricVehicles)} of the ${formatNumber(electricVehicles)} vehicles with electric drive`;
+  return {
+    strip: `${headline} and ${zoomTail}.`,
+    context: `${zoomTail}.`,
+  };
 }
 
 /**
@@ -156,9 +198,12 @@ function stripLine(activeKey: string | null, tiles: FleetTile[]): string {
  * of full-width tiles in descending order. Missing photos degrade to a
  * color-only tile, since the image is a plain CSS background layer.
  *
- * Tiles open no tooltip: hovering or keyboard-focusing a tile updates the
- * always-visible info strip below the treemap (a polite live region),
- * and Escape clears back to the default line.
+ * Hovering or keyboard-focusing a tile opens the shared cursor tooltip
+ * with the tile's figures and its context sentence, and also updates
+ * the always-visible info strip below the treemap (a polite live
+ * region, the fallback surface for keyboard and touch); Escape clears
+ * both. Each tile carries its energy icons (fuel, electric, or both) in
+ * its top-left corner, hidden when the tile is too small for them.
  */
 export function FleetTreemap() {
   const withFuelData = snapshot.totals.vehiclesWithFuelData;
@@ -224,6 +269,11 @@ export function FleetTreemap() {
 
   const summary = `Fleet by drivetrain: of ${formatNumber(withFuelData)} vehicles with fuel data, ${formatNumber(noElectricCount)} (${formatPercent(noElectricCount / withFuelData)}) have no electric drive and ${formatNumber(batteryElectric)} (${formatPercent(batteryElectric / withFuelData)}) are battery electric.`;
 
+  const activeTile = tiles.find((tile) => tile.key === activeKey) ?? null;
+  const strip = activeTile
+    ? tileNarrative(activeTile).strip
+    : defaultStripLine();
+
   function handleTileKeyDown(event: ReactKeyboardEvent) {
     if (event.key === "Escape") {
       setFocusKey(null);
@@ -243,6 +293,7 @@ export function FleetTreemap() {
       >
         {rects.map((rect) => {
           const share = rect.count / withFuelData;
+          const narrative = tileNarrative(rect);
           const stackHeight = Math.max(
             MIN_STACK_TILE_PX,
             share * STACK_TOTAL_PX,
@@ -253,6 +304,8 @@ export function FleetTreemap() {
             : rect.height - TILE_GAP_PX;
           const showText =
             textWidth >= MIN_TEXT_WIDTH_PX && textHeight >= MIN_TEXT_HEIGHT_PX;
+          const showIcons =
+            textWidth >= MIN_ICON_WIDTH_PX && textHeight >= MIN_ICON_HEIGHT_PX;
           const spacious = textHeight >= 128;
           const gradientHeight = spacious
             ? "50%"
@@ -285,75 +338,115 @@ export function FleetTreemap() {
           } as CSSProperties;
 
           return (
-            <div
+            <ChartTooltip
               key={rect.key}
-              tabIndex={0}
-              role="img"
-              aria-label={`${rect.label}: ${formatNumber(rect.count)} (${formatPercent(share)})`}
-              onFocus={() => setFocusKey(rect.key)}
-              onBlur={() => setFocusKey(null)}
-              onMouseEnter={() => setHoverKey(rect.key)}
-              onMouseLeave={() => setHoverKey(null)}
-              onKeyDown={handleTileKeyDown}
-              className={`chart-tooltip-trigger fleet-tile overflow-hidden${
-                stack ? " relative w-full" : " absolute"
-              }`}
-              style={tileStyle}
+              label={rect.label}
+              value={formatNumber(rect.count)}
+              percent={formatPercent(share)}
+              value2={narrative.context ?? undefined}
             >
-              <div
-                aria-hidden="true"
-                className="absolute inset-0"
-                style={{ backgroundColor: rect.colorToken }}
-              />
-              {rect.image ? (
+              {(trigger) => (
                 <div
-                  aria-hidden="true"
-                  className="fleet-photo absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url("${rect.image}")` }}
-                />
-              ) : null}
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-0 bottom-0"
-                style={{
-                  height: gradientHeight,
-                  background: `linear-gradient(to top, color-mix(in oklab, ${rect.colorToken} 90%, transparent), transparent)`,
-                }}
-              />
-              {showText ? (
-                <div
-                  className={`relative flex h-full flex-col justify-end gap-1 ${
-                    spacious ? "p-3 sm:p-4" : "p-2"
+                  {...trigger}
+                  onFocus={() => {
+                    trigger.onFocus();
+                    setFocusKey(rect.key);
+                  }}
+                  onBlur={() => {
+                    trigger.onBlur();
+                    setFocusKey(null);
+                  }}
+                  onMouseEnter={() => {
+                    trigger.onMouseEnter();
+                    setHoverKey(rect.key);
+                  }}
+                  onMouseLeave={() => {
+                    trigger.onMouseLeave();
+                    setHoverKey(null);
+                  }}
+                  onKeyDown={(event) => {
+                    trigger.onKeyDown(event);
+                    handleTileKeyDown(event);
+                  }}
+                  className={`chart-tooltip-trigger fleet-tile overflow-hidden${
+                    stack ? " relative w-full" : " absolute"
                   }`}
-                  style={{ color: "var(--fleet-tile-ink)" }}
+                  style={tileStyle}
                 >
-                  <p
-                    className="text-[10px] font-semibold tracking-widest uppercase"
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0"
+                    style={{ backgroundColor: rect.colorToken }}
+                  />
+                  {rect.image ? (
+                    <div
+                      aria-hidden="true"
+                      className="fleet-photo absolute inset-0 bg-cover bg-center"
+                      style={{ backgroundImage: `url("${rect.image}")` }}
+                    />
+                  ) : null}
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-x-0 bottom-0"
                     style={{
-                      color:
-                        "color-mix(in oklab, var(--fleet-tile-ink) 80%, transparent)",
+                      height: gradientHeight,
+                      background: `linear-gradient(to top, color-mix(in oklab, ${rect.colorToken} 90%, transparent), transparent)`,
                     }}
-                  >
-                    {rect.label}
-                  </p>
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <p
-                      className={`font-semibold tabular-nums ${countSizeClass(share)}`}
-                    >
-                      {formatNumber(Math.round(rect.count * countProgress))}
-                    </p>
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-medium tabular-nums"
+                  />
+                  {showIcons ? (
+                    <div
+                      aria-hidden="true"
+                      className="absolute top-2 left-2 flex items-center gap-1"
                       style={{
-                        backgroundColor: `color-mix(in oklab, ${rect.colorToken} 22%, transparent)`,
+                        color: "var(--fleet-tile-ink)",
+                        filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.55))",
                       }}
                     >
-                      {formatPercent(share)}
-                    </span>
-                  </div>
+                      {(rect.icons ?? []).map((icon) =>
+                        icon === "fuel" ? (
+                          <Fuel key="fuel" size={ICON_PX} />
+                        ) : (
+                          <Zap key="zap" size={ICON_PX} />
+                        ),
+                      )}
+                    </div>
+                  ) : null}
+                  {showText ? (
+                    <div
+                      className={`relative flex h-full flex-col justify-end gap-1 ${
+                        spacious ? "p-3 sm:p-4" : "p-2"
+                      }`}
+                      style={{ color: "var(--fleet-tile-ink)" }}
+                    >
+                      <p
+                        className="text-[10px] font-semibold tracking-widest uppercase"
+                        style={{
+                          color:
+                            "color-mix(in oklab, var(--fleet-tile-ink) 80%, transparent)",
+                        }}
+                      >
+                        {rect.label}
+                      </p>
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <p
+                          className={`font-semibold tabular-nums ${countSizeClass(share)}`}
+                        >
+                          {formatNumber(Math.round(rect.count * countProgress))}
+                        </p>
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-medium tabular-nums"
+                          style={{
+                            backgroundColor: `color-mix(in oklab, ${rect.colorToken} 22%, transparent)`,
+                          }}
+                        >
+                          {formatPercent(share)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
+              )}
+            </ChartTooltip>
           );
         })}
       </div>
@@ -362,7 +455,7 @@ export function FleetTreemap() {
         aria-live="polite"
         className="mt-3 border-t py-2.5 text-xs text-muted-foreground"
       >
-        {stripLine(activeKey, tiles)}
+        {strip}
       </div>
       <figcaption className="mt-2 text-xs text-muted-foreground">
         Vehicles by drivetrain, sized by count. Hybrid drivetrains are
