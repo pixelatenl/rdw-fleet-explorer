@@ -51,6 +51,12 @@ export function MethodDrawer() {
   }, [open]);
 
   function openDrawer() {
+    if (open) {
+      // Re-open request while the slide-out is still running:
+      // reverse it instead of ignoring it.
+      setShown(true);
+      return;
+    }
     setOpen(true);
   }
 
@@ -114,10 +120,13 @@ export function MethodDrawer() {
         onKeyDown={handleTab}
         onTransitionEnd={(event) => {
           // The slide-out finished: give the panel back its hidden
-          // state. Interrupted transitions never reach this branch.
+          // state. Tailwind v4 translates via the `translate` CSS
+          // property, so that is the property the event reports.
+          // Interrupted transitions never reach this branch.
           if (
             event.target === panelRef.current &&
-            event.propertyName === "transform" &&
+            (event.propertyName === "translate" ||
+              event.propertyName === "transform") &&
             !shown
           ) {
             setOpen(false);
