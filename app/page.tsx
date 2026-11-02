@@ -268,13 +268,10 @@ export default function Home() {
         <div className="relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-2xl sm:min-h-[34rem] lg:min-h-[70vh]">
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-cover"
+            className="ferrari-coda-photo absolute inset-0 bg-cover"
             style={{
               backgroundImage:
                 'url("/images/ferrari-458-martin-katler.jpg")',
-              // The car sits around mid-height of the portrait photo;
-              // biasing the crop upward keeps it clear of the copy.
-              backgroundPosition: "center 40%",
             }}
           />
           <div
