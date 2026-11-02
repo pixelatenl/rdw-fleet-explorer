@@ -106,7 +106,7 @@ export function Drawer({ label, title, description, children }: DrawerProps) {
         onClick={openDrawer}
         aria-expanded={open}
         aria-controls={panelId}
-        className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        className="cursor-pointer text-muted-foreground underline underline-offset-4 hover:text-foreground"
       >
         {label}
       </button>
@@ -164,7 +164,7 @@ export function Drawer({ label, title, description, children }: DrawerProps) {
             type="button"
             onClick={closeDrawer}
             aria-label="Close"
-            className="shrink-0 rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            className="shrink-0 cursor-pointer rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <svg
               className="size-4"
