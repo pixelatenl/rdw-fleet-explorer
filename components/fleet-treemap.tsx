@@ -419,7 +419,11 @@ export function FleetTreemap() {
                   {showIcons ? (
                     <div
                       aria-hidden="true"
-                      className="absolute top-2 left-2 flex items-center gap-1 rounded-full p-1.5"
+                      className={`absolute flex items-center gap-1 rounded-full p-2 ${
+                        // The chip hugs the same inset the text layer
+                        // uses, so badge and text share one edge rhythm.
+                        spacious ? "top-3 left-3 sm:top-4 sm:left-4" : "top-2 left-2"
+                      }`}
                       style={{
                         color: "var(--fleet-icon)",
                         backgroundColor: "var(--fleet-icon-chip)",
