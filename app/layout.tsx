@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { FamilyHeader } from "@/components/family-header";
 import { FamilyFooter } from "@/components/family-footer";
+import { MethodDrawer } from "@/components/method-drawer";
 
 const SITE_URL = "https://fleet.pixelate.nl";
 const SITE_DESCRIPTION =
@@ -92,7 +93,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <FamilyHeader />
           <main className="flex-1">{children}</main>
-          <FamilyFooter />
+          <FamilyFooter extra={<MethodDrawer />} />
         </div>
       </body>
     </html>
