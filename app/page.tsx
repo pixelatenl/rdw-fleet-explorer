@@ -77,7 +77,7 @@ export default function Home() {
       />
       <section className="mb-12">
         <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
-          Dutch open data, visualized by Pixelate
+          Dutch open data
         </p>
         <h1 className="max-w-5xl text-4xl font-bold tracking-tight sm:text-5xl">
           How <span className="text-brand-accent">electric</span> is the{" "}
