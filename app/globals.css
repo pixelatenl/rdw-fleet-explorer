@@ -162,6 +162,19 @@
   --fleet-ink-ovc-hev: var(--card-foreground);
   --fleet-ink-fchv: #ffffff;
 
+  /*
+    Translucent chip scrim behind the share pill and the energy icons:
+    the inverse of the tile's ink, so the chip always steps away from
+    the fill (about 1.3 to 1) while the ink on top keeps at least 4.5
+    to 1. White where the ink is dark, the dark foreground where the
+    ink is white.
+  */
+  --fleet-chip-no-electric: rgb(255 255 255 / 0.18);
+  --fleet-chip-bev: rgb(255 255 255 / 0.18);
+  --fleet-chip-novc-hev: rgb(5 18 20 / 0.18);
+  --fleet-chip-ovc-hev: rgb(255 255 255 / 0.18);
+  --fleet-chip-fchv: rgb(5 18 20 / 0.18);
+
   /* Duotone photo blend. */
   --fleet-photo-opacity: 0.45;
 }
@@ -173,6 +186,13 @@
   --fleet-ink-novc-hev: var(--primary-foreground);
   --fleet-ink-ovc-hev: var(--primary-foreground);
   --fleet-ink-fchv: var(--primary-foreground);
+
+  /* Every dark-theme ink is dark, so every chip scrim is white. */
+  --fleet-chip-no-electric: rgb(255 255 255 / 0.18);
+  --fleet-chip-bev: rgb(255 255 255 / 0.18);
+  --fleet-chip-novc-hev: rgb(255 255 255 / 0.18);
+  --fleet-chip-ovc-hev: rgb(255 255 255 / 0.18);
+  --fleet-chip-fchv: rgb(255 255 255 / 0.18);
 
   --fleet-photo-opacity: 0.55;
 }

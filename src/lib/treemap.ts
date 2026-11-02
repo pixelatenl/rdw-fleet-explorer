@@ -6,6 +6,8 @@ export interface TreemapInputItem {
   image?: string;
   /** Optional per-tile text color token, passed through to the rect. */
   inkToken?: string;
+  /** Optional per-tile chip scrim token, passed through to the rect. */
+  chipToken?: string;
   /** Optional per-tile energy icon names, passed through to the rect. */
   icons?: string[];
 }

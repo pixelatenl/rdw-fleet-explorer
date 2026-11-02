@@ -53,6 +53,8 @@ type IconName = "fuel" | "zap";
 interface FleetTile extends TreemapInputItem {
   /** Per-key text color token, chosen for contrast on the tile fill. */
   inkToken: string;
+  /** Per-key translucent chip scrim token, the inverse of the ink. */
+  chipToken: string;
   /** Energy icons shown in the tile's top-left corner. */
   icons: IconName[];
 }
@@ -72,6 +74,7 @@ function buildTiles(): FleetTile[] {
       count: withFuelData - electricVehicles,
       colorToken: "var(--fleet-tile-no-electric)",
       inkToken: "var(--fleet-ink-no-electric)",
+      chipToken: "var(--fleet-chip-no-electric)",
       icons: ["fuel"],
       image: "/images/gas-station-onno-blaauw.jpg",
     },
@@ -81,6 +84,7 @@ function buildTiles(): FleetTile[] {
       count: countOf("bev"),
       colorToken: "var(--drivetrain-bev)",
       inkToken: "var(--fleet-ink-bev)",
+      chipToken: "var(--fleet-chip-bev)",
       icons: ["zap"],
       image: "/images/ev-charging-chuttersnap.jpg",
     },
@@ -90,6 +94,7 @@ function buildTiles(): FleetTile[] {
       count: countOf("novc-hev"),
       colorToken: "var(--drivetrain-hev)",
       inkToken: "var(--fleet-ink-novc-hev)",
+      chipToken: "var(--fleet-chip-novc-hev)",
       icons: ["fuel"],
       image: "/images/hybrid-car-ivan-kazlouskij.jpg",
     },
@@ -99,6 +104,7 @@ function buildTiles(): FleetTile[] {
       count: countOf("ovc-hev"),
       colorToken: "var(--drivetrain-phev)",
       inkToken: "var(--fleet-ink-ovc-hev)",
+      chipToken: "var(--fleet-chip-ovc-hev)",
       icons: ["fuel", "zap"],
       image: "/images/phev-suv-haberdoedas.jpg",
     },
@@ -108,6 +114,7 @@ function buildTiles(): FleetTile[] {
       count: countOf("fchv"),
       colorToken: "var(--drivetrain-fchv)",
       inkToken: "var(--fleet-ink-fchv)",
+      chipToken: "var(--fleet-chip-fchv)",
       icons: ["zap"],
     },
   ];
@@ -342,6 +349,7 @@ export function FleetTreemap() {
           const tileStyle = {
             ...positionStyle,
             "--fleet-tile-ink": rect.inkToken,
+            "--fleet-chip": rect.chipToken,
           } as CSSProperties;
 
           return (
@@ -403,9 +411,10 @@ export function FleetTreemap() {
                   {showIcons ? (
                     <div
                       aria-hidden="true"
-                      className="absolute top-2 left-2 flex items-center gap-1"
+                      className="absolute top-2 left-2 flex items-center gap-1 rounded-full p-1.5"
                       style={{
                         color: "var(--fleet-tile-ink)",
+                        backgroundColor: "var(--fleet-chip)",
                       }}
                     >
                       {(rect.icons ?? []).map((icon) =>
@@ -441,9 +450,7 @@ export function FleetTreemap() {
                         </p>
                         <span
                           className="rounded-full px-2 py-0.5 text-sm font-medium tabular-nums"
-                          style={{
-                            backgroundColor: `color-mix(in oklab, ${rect.colorToken} 22%, transparent)`,
-                          }}
+                          style={{ backgroundColor: "var(--fleet-chip)" }}
                         >
                           {formatPercent(share)}
                         </span>
