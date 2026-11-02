@@ -287,8 +287,16 @@ export function FleetTreemap() {
         ref={containerRef}
         role="img"
         aria-label={summary}
-        className={`relative w-full overflow-hidden rounded-xl${
-          stack ? " flex flex-col gap-1.5" : " aspect-[4/5] sm:aspect-[16/9]"
+        className={`relative w-full${
+          stack
+            ? // Flow layout: tiles carry their own rounded corners and
+              // must not be clipped by the container, so no rounding or
+              // overflow clipping here.
+              " flex flex-col gap-1.5"
+            : // Absolute layout: tiles sit 3px inset with a 12px radius,
+              // so the clip radius must clear their corner arcs (which
+              // reach ~13.4px); 16px gives comfortable margin.
+              " overflow-hidden rounded-2xl aspect-[4/5] sm:aspect-[16/9]"
         }`}
       >
         {rects.map((rect) => {
