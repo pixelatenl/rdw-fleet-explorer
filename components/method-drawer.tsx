@@ -130,14 +130,31 @@ export function MethodDrawer() {
           Photo by{" "}
           <a
             className="underline underline-offset-2 hover:text-foreground"
-            href="https://unsplash.com/@mkumbwajr"
+            href="https://unsplash.com/@onno_blaauw"
           >
-            Ali Mkumbwa
+            Onno Blaauw
           </a>{" "}
           on{" "}
           <a
             className="underline underline-offset-2 hover:text-foreground"
-            href="https://unsplash.com/photos/a-man-pumping-gas-into-his-car-at-a-gas-station-BK20Ws-wSFc"
+            href="https://unsplash.com/photos/black-and-white-store-front-VdFLjf5GhWM"
+          >
+            Unsplash
+          </a>
+          .
+        </li>
+        <li className="text-xs">
+          Photo by{" "}
+          <a
+            className="underline underline-offset-2 hover:text-foreground"
+            href="https://unsplash.com/@haberdoedas"
+          >
+            Haberdoedas
+          </a>{" "}
+          on{" "}
+          <a
+            className="underline underline-offset-2 hover:text-foreground"
+            href="https://unsplash.com/photos/a-grey-suv-parked-on-a-gravel-road-02vF_ow1ISE"
           >
             Unsplash
           </a>

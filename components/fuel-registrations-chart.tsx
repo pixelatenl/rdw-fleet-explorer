@@ -61,7 +61,7 @@ export function FuelRegistrationsChart() {
               {(trigger, active) => (
                 <div
                   {...trigger}
-                  className="chart-tooltip-trigger h-2.5 w-full overflow-hidden rounded-full bg-muted"
+                  className="chart-tooltip-trigger h-2.5 w-full overflow-hidden rounded-full bg-[var(--chart-track)]"
                 >
                   <div
                     className={`h-full rounded-full chart-gradient-${tokenByKey[row.key] ?? 2}`}

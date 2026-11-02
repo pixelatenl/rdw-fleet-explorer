@@ -49,6 +49,17 @@
   --chart-3: #166474;
   --chart-4: #0f353d;
   --chart-5: #86d6e5;
+
+  /*
+    Bar track for the horizontal fuel and vehicle-type charts: the
+    surface a value bar fills. --muted is too close to the card in both
+    themes (1.15 to 1 in light, 1.01 to 1 in dark) for the track to
+    read, so this stays in the theme's teal family but far enough from
+    the card to stay visible: 1.6 to 1 against the light card, 1.7 to 1
+    against the dark card, while the value bars on top still reach
+    about 4 to 1 against it.
+  */
+  --chart-track: #a9ced9;
 }
 
 .dark {
@@ -80,6 +91,9 @@
   --chart-3: #a7e2ee;
   --chart-4: #86d6e5;
   --chart-5: #d2ecf1;
+
+  /* Bar track, light enough to read on the dark card; see :root. */
+  --chart-track: #2a6572;
 }
 
 /*
@@ -96,38 +110,124 @@
 }
 
 /*
-  Fleet treemap tile surfaces. Tile text sits on a readability gradient
-  of these colors at 90% opacity over the duotone photo, so they must
-  keep text-card-foreground at a 4.5:1 contrast in both themes. The raw
-  chart tokens cannot (too dark for the dark light-theme text, too light
-  for the light dark-theme text), so each tile is a token-derived tint
-  mixed toward the theme surface here. The no-electric tile derives from
-  the darkest token and stays the most muted surface so it recedes,
-  while the electric tiles keep the brightest tints of the set.
+  Drivetrain palette: the four electrified drivetrains are categories,
+  not a sequence, so each gets its own distinct hue that pops in both
+  themes. Battery electric takes the family orange, full hybrid the
+  violet, plug-in hybrid the brand teal and fuel cell the rose.
+  Contrast audit (3 to 1 minimum against the theme's surfaces, light
+  page #eaf6f9 / card #f6fbfc, dark #0f353d / #14414c): light bev 3.4
+  to 1, hev 4.8 to 1, phev 3.3 to 1, fchv 5.1 to 1; dark bev 5.3 to 1,
+  hev 4.5 to 1, phev 4.8 to 1, fchv 4.4 to 1. The light plug-in teal is
+  darkened from the brand #48b9d1, which reaches only 2.1 to 1 on the
+  light surfaces, to #2e91a9 (3.3 to 1) while keeping the teal hue. The
+  orange and rose pair reaches only 1.5 to 1 (light) and 1.2 to 1
+  (dark): no orange variant can clear 3 to 1 against the rose while
+  keeping 3 to 1 against its own background (light needs the orange
+  near white or near black, dark needs it below the background floor),
+  so both themes lean on hue separation there, as between the other
+  neighbours.
 */
 :root {
-  /* Battery electric: the brightest token, the eye lands here first. */
-  --fleet-tile-1: var(--chart-1);
-  --fleet-tile-2: color-mix(in oklab, var(--chart-2) 85%, var(--card));
-  --fleet-tile-3: color-mix(in oklab, var(--chart-3) 60%, var(--card));
-  --fleet-tile-4: color-mix(in oklab, var(--chart-4) 55%, var(--card));
-  /* No electric drive: darkest chart token, muted so it recedes, while
-     staying light enough for 4.5:1 text on the photo gradient. */
-  --fleet-tile-5: color-mix(in oklab, var(--chart-4) 52%, var(--card));
-
-  /* Duotone photo blend and tile edge treatment. */
-  --fleet-photo-opacity: 0.45;
-  --fleet-tile-edge-mix: #fff;
+  --drivetrain-bev: #c96a15;
+  --drivetrain-hev: #6d5bc6;
+  --drivetrain-phev: #2e91a9;
+  --drivetrain-fchv: #b33a6e;
 }
 
 .dark {
-  --fleet-tile-1: color-mix(in oklab, var(--chart-1) 16%, var(--background));
-  --fleet-tile-2: color-mix(in oklab, var(--chart-2) 12%, var(--background));
-  --fleet-tile-3: color-mix(in oklab, var(--chart-3) 10%, var(--background));
-  --fleet-tile-4: color-mix(in oklab, var(--chart-4) 11%, var(--background));
-  --fleet-tile-5: color-mix(in oklab, var(--chart-4) 8%, var(--background));
+  --drivetrain-bev: #f48822;
+  --drivetrain-hev: #9b8ce0;
+  --drivetrain-phev: #48b9d1;
+  --drivetrain-fchv: #e86ba4;
+}
+
+/*
+  Fleet treemap tile treatment. Tiles fill flat with the drivetrain
+  tokens above; the no-electric tile pins one mid teal in both themes
+  (the light chart-5 mint shaded 15% toward the dark foreground, so
+  the tile reads darker with more presence), and tile text sits on a
+  readability gradient of the tile
+  color at 90% opacity over the duotone photo. Because the flat fills
+  no longer shade toward the theme surface, each tile also carries a
+  per-key ink token that keeps the text layer at roughly 4.5 to 1: the
+  dark theme's fills are all bright hues, so every tile flips to the
+  dark ink there, while the light theme keeps the dark foreground ink
+  except on the two darker hues (full hybrid violet, fuel cell rose),
+  which take white.
+*/
+:root {
+  --fleet-tile-no-electric: #73b9c6;
+  --fleet-ink-no-electric: var(--card-foreground);
+  --fleet-ink-bev: var(--card-foreground);
+  --fleet-ink-novc-hev: #ffffff;
+  --fleet-ink-ovc-hev: var(--card-foreground);
+  --fleet-ink-fchv: #ffffff;
+
+  /*
+    Translucent chip scrim behind the share pill and the energy icons:
+    the inverse of the tile's ink, so the chip always steps away from
+    the fill (about 1.3 to 1) while the ink on top keeps at least 4.5
+    to 1. White where the ink is dark, the dark foreground where the
+    ink is white.
+  */
+  --fleet-chip-no-electric: rgb(255 255 255 / 0.18);
+  --fleet-chip-bev: rgb(255 255 255 / 0.18);
+  --fleet-chip-novc-hev: rgb(5 18 20 / 0.18);
+  --fleet-chip-ovc-hev: rgb(255 255 255 / 0.18);
+  --fleet-chip-fchv: rgb(5 18 20 / 0.18);
+
+  /*
+    Energy icon colors: the tile's own hue shaded hard toward the dark
+    foreground (70%), so every icon is a genuinely dark version of its
+    tile color. Because every icon shade is dark, the icons sit on
+    their own white chip scrim, which lifts the tile surface behind
+    them; every combination keeps at least 4 to 1 against the tile
+    behind its chip. The share pill keeps the --fleet-chip scrim above,
+    chosen for its ink instead.
+  */
+  --fleet-icon-chip: rgb(255 255 255 / 0.22);
+  --fleet-icon-no-electric: #1f393e;
+  --fleet-icon-bev: #402c14;
+  --fleet-icon-novc-hev: #242849;
+  --fleet-icon-ovc-hev: #113841;
+  --fleet-icon-fchv: #391e2f;
+
+  /* Duotone photo blend. */
+  --fleet-photo-opacity: 0.45;
+  --fleet-photo-contrast: 1.05;
+
+  /*
+    The no-electric gas station photo reads washed out at the default
+    blend, so that tile's photo carries more presence and contrast.
+  */
+  --fleet-photo-opacity-no-electric: 0.6;
+  --fleet-photo-contrast-no-electric: 1.3;
+}
+
+.dark {
+  --fleet-tile-no-electric: #73b9c6;
+  --fleet-ink-no-electric: var(--primary-foreground);
+  --fleet-ink-bev: var(--primary-foreground);
+  --fleet-ink-novc-hev: var(--primary-foreground);
+  --fleet-ink-ovc-hev: var(--primary-foreground);
+  --fleet-ink-fchv: var(--primary-foreground);
+
+  /* Every dark-theme ink is dark, so every chip scrim is white. */
+  --fleet-chip-no-electric: rgb(255 255 255 / 0.18);
+  --fleet-chip-bev: rgb(255 255 255 / 0.18);
+  --fleet-chip-novc-hev: rgb(255 255 255 / 0.18);
+  --fleet-chip-ovc-hev: rgb(255 255 255 / 0.18);
+  --fleet-chip-fchv: rgb(255 255 255 / 0.18);
+
+  /* Every dark-theme fill is bright, so all its icon shades are dark. */
+  --fleet-icon-no-electric: #1f393e;
+  --fleet-icon-bev: #4d3518;
+  --fleet-icon-novc-hev: #323751;
+  --fleet-icon-ovc-hev: #19444d;
+  --fleet-icon-fchv: #492d3f;
 
   --fleet-photo-opacity: 0.55;
+  --fleet-photo-opacity-no-electric: 0.65;
 }
 
 @theme inline {
@@ -199,16 +299,13 @@
 }
 
 /*
-  Fleet treemap depth and motion. Tiles carry a subtle 1px inner edge in
-  a lighter variant of their own token color (set per tile through the
-  --fleet-tile-edge custom property), and lift on hover and keyboard
-  focus. The photo layer reads as duotone texture: grayscale, luminosity
-  blended into the token base fill, slowly panning inside the clipped
-  tile. Everything is disabled under prefers-reduced-motion.
+  Fleet treemap depth and motion. Tiles lift on hover and keyboard
+  focus, dropping a soft shadow beneath them. The photo layer reads as
+  duotone texture: grayscale, luminosity blended into the token base
+  fill. Everything is disabled under prefers-reduced-motion.
 */
 .fleet-tile {
   border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--fleet-tile-edge);
   transition:
     transform 200ms ease-out,
     box-shadow 200ms ease-out;
@@ -217,27 +314,24 @@
 .fleet-tile:hover,
 .fleet-tile:focus-visible {
   transform: translateY(-2px);
-  box-shadow:
-    inset 0 0 0 1px var(--fleet-tile-edge),
-    0 10px 20px -8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.35);
 }
 
-@keyframes fleet-photo-pan {
-  from {
-    transform: scale(1.06);
-  }
-  to {
-    transform: scale(1.12);
-  }
+/*
+  Optical alignment of the energy icons. Zap's bolt is symmetric around
+  its box center, but the fuel pump is a dense tall outline whose mass
+  (body, window, base line) sits left and low, with only a thin hose
+  reaching right, so at equal sizes it reads bigger and off-center next
+  to the bolt. It shrinks a step and nudges right and up to match.
+*/
+.fleet-icon-fuel {
+  transform: translate(3px, -1px) scale(0.88);
 }
 
 .fleet-photo {
-  transform: scale(1.06);
-  filter: grayscale(1) contrast(1.05);
+  filter: grayscale(1) contrast(var(--fleet-photo-contrast, 1.05));
   mix-blend-mode: luminosity;
   opacity: var(--fleet-photo-opacity);
-  animation: fleet-photo-pan 24s ease-in-out infinite alternate;
-  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -246,9 +340,5 @@
   .fleet-tile:focus-visible {
     transition: none;
     transform: none;
-  }
-
-  .fleet-photo {
-    animation: none;
   }
 }

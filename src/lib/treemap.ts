@@ -4,6 +4,18 @@ export interface TreemapInputItem {
   count: number;
   colorToken: string;
   image?: string;
+  /** Optional per-tile text color token, passed through to the rect. */
+  inkToken?: string;
+  /** Optional per-tile chip scrim token, passed through to the rect. */
+  chipToken?: string;
+  /** Optional per-tile energy icon color token, passed through to the rect. */
+  iconToken?: string;
+  /** Optional per-tile energy icon names, passed through to the rect. */
+  icons?: string[];
+  /** Optional per-tile photo opacity token override. */
+  photoOpacityToken?: string;
+  /** Optional per-tile photo contrast token override. */
+  photoContrastToken?: string;
 }
 
 export interface TreemapRect extends TreemapInputItem {
