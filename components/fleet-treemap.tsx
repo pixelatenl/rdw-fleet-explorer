@@ -43,6 +43,26 @@ const MIN_ICON_WIDTH_PX = 48;
 const MIN_ICON_HEIGHT_PX = 40;
 /** Energy icon size, in px. */
 const ICON_PX = 40;
+/**
+ * Compact (stack) content rule, in px. Below sm the count and pill step
+ * one size down and the text inset tightens to p-1, so a tile fits its
+ * full content when its height covers the label row, the row gap, and
+ * the stepped-down count line. The chip sits at the top-right in the
+ * stack and the pill rides the count line, so neither adds height; the
+ * threshold is calibrated so the no-electric, battery electric, and
+ * full hybrid tiles (all at their 64px stack minimum at a 390px
+ * viewport) keep their full content.
+ */
+const COMPACT_TEXT_INSET_PX = 4;
+const LABEL_LINE_PX = 15;
+const LABEL_COUNT_GAP_PX = 4;
+/** Line heights of the stepped-down count sizes used in the stack. */
+const COMPACT_COUNT_LINE_PX: Record<string, number> = {
+  "text-5xl": 48,
+  "text-3xl": 36,
+  "text-2xl": 32,
+  "text-xl": 28,
+};
 /** Count-up: short delay, then two seconds of slow-to-fast easing. */
 const COUNT_UP_DELAY_MS = 300;
 const COUNT_UP_MS = 2000;
@@ -140,6 +160,17 @@ function countSizeClass(share: number): string {
   return "text-2xl";
 }
 
+/**
+ * One step below countSizeClass, for the below-sm stack: the count and
+ * the share pill each drop one size so the shorter stack tiles breathe.
+ */
+function compactCountSizeClass(share: number): string {
+  if (share > 0.5) return "text-5xl";
+  if (share > 0.07) return "text-3xl";
+  if (share > 0.05) return "text-2xl";
+  return "text-xl";
+}
+
 /** Neutral strip line shown when no tile is hovered or focused. */
 function defaultStripLine(): string {
   const withFuelData = snapshot.totals.vehiclesWithFuelData;
@@ -222,8 +253,12 @@ function tileNarrative(tile: {
  * with the tile's figures and its context sentence, and also updates
  * the always-visible info strip below the treemap (a polite live
  * region, the fallback surface for keyboard and touch); Escape clears
- * both. Each tile carries its energy icons (fuel, electric, or both) in
- * its top-left corner, hidden when the tile is too small for them.
+ * both. Each tile carries its energy icons (fuel, electric, or both)
+ * in its top-left corner on wide layouts, hidden when the tile is too
+ * small for them; in the below-sm stack the chip shrinks to 28px and
+ * moves to the top-right, out of the text column, so the short stack
+ * tiles keep their full content without the chip colliding with the
+ * label or count.
  */
 export function FleetTreemap() {
   const withFuelData = snapshot.totals.vehiclesWithFuelData;
@@ -341,6 +376,52 @@ export function FleetTreemap() {
               ? "70%"
               : "100%";
 
+          /*
+            Below-sm compact treatment. In the stack (and, via the sm:
+            pairs, in the unmeasured below-sm paint) the chip shrinks to
+            28px at the top-right, the count and pill step one size
+            down, and the text inset tightens to p-1. The chip sits
+            opposite the bottom-anchored text column so the two can
+            share the short 64px stack tiles without overlapping.
+          */
+          const compactCountClass = compactCountSizeClass(share);
+          const countClass = stack
+            ? compactCountClass
+            : `${compactCountClass} sm:${countSizeClass(share)}`;
+          const pillClass = stack ? "text-xs" : "text-xs sm:text-sm";
+          const chipPadClass = stack ? "p-1" : "p-1 sm:p-2";
+          const iconSizeClass = stack ? "h-5 w-5" : "h-5 w-5 sm:h-10 sm:w-10";
+          const chipPositionClass = stack
+            ? spacious
+              ? "top-3 right-3"
+              : "top-2 right-2"
+            : spacious
+              ? "top-3 right-3 sm:top-4 sm:left-4 sm:right-auto"
+              : "top-2 right-2 sm:left-2 sm:right-auto";
+          const textPadClass = spacious
+            ? "p-3 sm:p-4"
+            : stack
+              ? "p-1"
+              : "p-1 sm:p-2";
+
+          /*
+            Content rule for the compact stack: the label and count
+            block must fit the tile height. While it fits, the chip and
+            pill ride along (top-right and inline with the count); once
+            it does not, the chip, pill, and count drop out and only
+            the label remains, so nothing ever collides or overflows.
+          */
+          const compactCountLinePx =
+            COMPACT_COUNT_LINE_PX[compactCountClass] ?? 28;
+          const fullContentMinPx =
+            COMPACT_TEXT_INSET_PX * 2 +
+            LABEL_LINE_PX +
+            LABEL_COUNT_GAP_PX +
+            compactCountLinePx;
+          const fullContent = !stack || stackHeight >= fullContentMinPx;
+          const showChip = showIcons && fullContent;
+          const showFigures = showText && fullContent;
+
           const positionStyle: CSSProperties = stack
             ? { height: stackHeight, minHeight: MIN_TILE_PX }
             : measured
@@ -428,14 +509,10 @@ export function FleetTreemap() {
                       background: `linear-gradient(to top, color-mix(in oklab, ${rect.colorToken} 90%, transparent), transparent)`,
                     }}
                   />
-                  {showIcons ? (
+                  {showChip ? (
                     <div
                       aria-hidden="true"
-                      className={`absolute flex items-center gap-1 rounded-full p-2 ${
-                        // The chip hugs the same inset the text layer
-                        // uses, so badge and text share one edge rhythm.
-                        spacious ? "top-3 left-3 sm:top-4 sm:left-4" : "top-2 left-2"
-                      }`}
+                      className={`absolute flex items-center gap-1 rounded-full ${chipPadClass} ${chipPositionClass}`}
                       style={{
                         color: "var(--fleet-icon)",
                         backgroundColor: "var(--fleet-icon-chip)",
@@ -443,18 +520,20 @@ export function FleetTreemap() {
                     >
                       {(rect.icons ?? []).map((icon) =>
                         icon === "fuel" ? (
-                          <Fuel key="fuel" size={ICON_PX} className="fleet-icon-fuel" />
+                          <Fuel
+                            key="fuel"
+                            size={ICON_PX}
+                            className={`fleet-icon-fuel ${iconSizeClass}`}
+                          />
                         ) : (
-                          <Zap key="zap" size={ICON_PX} />
+                          <Zap key="zap" size={ICON_PX} className={iconSizeClass} />
                         ),
                       )}
                     </div>
                   ) : null}
                   {showText ? (
                     <div
-                      className={`relative flex h-full flex-col justify-end gap-1 ${
-                        spacious ? "p-3 sm:p-4" : "p-2"
-                      }`}
+                      className={`relative flex h-full flex-col justify-end gap-1 ${textPadClass}`}
                       style={{ color: "var(--fleet-tile-ink)" }}
                     >
                       <p
@@ -466,19 +545,21 @@ export function FleetTreemap() {
                       >
                         {rect.label}
                       </p>
-                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                        <p
-                          className={`font-bold tabular-nums ${countSizeClass(share)}`}
-                        >
-                          {formatNumber(Math.round(rect.count * countProgress))}
-                        </p>
-                        <span
-                          className="rounded-full px-2 py-0.5 text-sm font-medium tabular-nums"
-                          style={{ backgroundColor: "var(--fleet-chip)" }}
-                        >
-                          {formatPercent(share)}
-                        </span>
-                      </div>
+                      {showFigures ? (
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                          <p
+                            className={`font-bold tabular-nums ${countClass}`}
+                          >
+                            {formatNumber(Math.round(rect.count * countProgress))}
+                          </p>
+                          <span
+                            className={`rounded-full px-2 py-0.5 font-medium tabular-nums ${pillClass}`}
+                            style={{ backgroundColor: "var(--fleet-chip)" }}
+                          >
+                            {formatPercent(share)}
+                          </span>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

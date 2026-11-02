@@ -335,6 +335,16 @@
 }
 
 /*
+  Ferrari coda photo crop. The car sits around mid-height of the
+  portrait photo; biasing the crop upward keeps it clear of the copy.
+  Below sm the section is tall and narrow, so the crop biases down
+  instead: less bright sky behind the text block, car still visible.
+*/
+.ferrari-coda-photo {
+  background-position: center 40%;
+}
+
+/*
   Ferrari coda overlay. The closing photo is the only place on the
   page where body text sits over an untreated photo, so the gradient
   leans on the theme's background token the same way the treemap tile
@@ -350,6 +360,39 @@
     color-mix(in oklab, var(--background) 38%, transparent) 70%,
     transparent
   );
+}
+
+/*
+  Mobile coda legibility. Below sm the copy, stat row, and closing line
+  fill nearly the whole height of the tall narrow crop, so the
+  bottom-only gradient leaves the headline and body copy floating over
+  the sky and the red body. The scrim then darkens from both
+  directions: the original bottom gradient stays, and a top gradient
+  lays heavy darkening over the headline and copy zones, fading before
+  the bottom scrim takes over. Scrim strength, not text color or size,
+  carries the contrast.
+*/
+@media (width < 40rem) {
+  .ferrari-coda-photo {
+    background-position: center 65%;
+  }
+  .ferrari-coda-overlay {
+    background:
+      linear-gradient(
+        to top,
+        color-mix(in oklab, var(--background) 97%, transparent),
+        color-mix(in oklab, var(--background) 84%, transparent) 38%,
+        color-mix(in oklab, var(--background) 38%, transparent) 70%,
+        transparent
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--background) 90%, transparent),
+        color-mix(in oklab, var(--background) 78%, transparent) 34%,
+        color-mix(in oklab, var(--background) 52%, transparent) 60%,
+        transparent 80%
+      );
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
