@@ -5,8 +5,10 @@ import { snapshot } from "@/data/snapshot";
 /**
  * Shared family footer with the back link to the launcher hub and the
  * data attribution. Present on every product site in the family.
+ * The optional extra prop lets a product slot a link into the
+ * right-hand group, before the launcher link.
  */
-export function FamilyFooter() {
+export function FamilyFooter({ extra }: { extra?: React.ReactNode }) {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-[1536px] flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -27,6 +29,7 @@ export function FamilyFooter() {
           </p>
         </div>
         <div className="flex items-center gap-4 text-sm">
+          {extra}
           <Link
             href={FAMILY.launcherUrl}
             className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
