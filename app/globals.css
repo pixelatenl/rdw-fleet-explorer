@@ -49,6 +49,17 @@
   --chart-3: #166474;
   --chart-4: #0f353d;
   --chart-5: #86d6e5;
+
+  /*
+    Bar track for the horizontal fuel and vehicle-type charts: the
+    surface a value bar fills. --muted is too close to the card in both
+    themes (1.15 to 1 in light, 1.01 to 1 in dark) for the track to
+    read, so this stays in the theme's teal family but far enough from
+    the card to stay visible: 1.6 to 1 against the light card, 1.7 to 1
+    against the dark card, while the value bars on top still reach
+    about 4 to 1 against it.
+  */
+  --chart-track: #a9ced9;
 }
 
 .dark {
@@ -80,6 +91,9 @@
   --chart-3: #a7e2ee;
   --chart-4: #86d6e5;
   --chart-5: #d2ecf1;
+
+  /* Bar track, light enough to read on the dark card; see :root. */
+  --chart-track: #2a6572;
 }
 
 /*
