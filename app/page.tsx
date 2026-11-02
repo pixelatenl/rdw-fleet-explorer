@@ -234,11 +234,12 @@ export default function Home() {
           <CardContent>
             <HeavyTurnChart />
             <p className="mt-4 text-sm text-muted-foreground">
-              Both series are means per first-registration-year cohort,
-              not medians.{" "}
+              Both lines show averages, not the exact middle, so a few
+              extreme cars can pull a year up or down. In the{" "}
+              {latestCohort.year} class,{" "}
               {formatNumber(latestCohort.count - (latestCohort.withEngine ?? 0))}{" "}
-              of {formatNumber(latestCohort.count)} cars in the{" "}
-              {latestCohort.year} cohort have no engine capacity.
+              of {formatNumber(latestCohort.count)} cars have no engine
+              size to measure at all.
             </p>
           </CardContent>
         </Card>
