@@ -85,8 +85,9 @@ export default function Home() {
         </h1>
         <p className="mt-4 max-w-5xl text-lg text-muted-foreground">
           Live aggregates from the complete RDW vehicle register, more than{" "}
-          {formatNumber(snapshot.totals.vehicles)} vehicles, refreshed
-          weekly and rendered straight into this page.
+          {formatNumber(snapshot.totals.vehicles)} vehicles, of which{" "}
+          {formatNumber(snapshot.totals.vehiclesWithFuelData)} carry fuel
+          data, refreshed weekly and rendered straight into this page.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           Data received on {formatDate(snapshot.retrievedAt)}.

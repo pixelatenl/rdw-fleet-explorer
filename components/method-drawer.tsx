@@ -88,9 +88,12 @@ export function MethodDrawer() {
         <li>
           Figures include all vehicle types unless stated otherwise;
           trailers and similar vehicles without fuel data are excluded
-          from fuel-based shares. The fuel-data total covers all motor
-          vehicles, mopeds and motorcycles included, so the drivetrain
-          figures are motor vehicle figures, not car figures.
+          from fuel-based shares: trailers, centre-axle trailers,
+          semi-trailers, and agricultural trailers and trailed equipment
+          have no fuel data, which is why fuel-based figures cover fewer
+          vehicles than the register total. The fuel-data total covers all
+          motor vehicles, mopeds and motorcycles included, so the
+          drivetrain figures are motor vehicle figures, not car figures.
         </li>
         <li className="text-xs">
           Photo by{" "}

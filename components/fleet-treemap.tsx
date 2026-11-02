@@ -143,7 +143,8 @@ function countSizeClass(share: number): string {
 /** Neutral strip line shown when no tile is hovered or focused. */
 function defaultStripLine(): string {
   const withFuelData = snapshot.totals.vehiclesWithFuelData;
-  return `Every tile is part of ${formatNumber(withFuelData)} vehicles with fuel data.`;
+  const remainder = snapshot.totals.vehicles - withFuelData;
+  return `Every tile is part of ${formatNumber(withFuelData)} vehicles with fuel data. The other ${formatNumber(remainder)} vehicles in the register are trailers and towed equipment, which have no fuel data.`;
 }
 
 /**
