@@ -175,6 +175,19 @@
   --fleet-chip-ovc-hev: rgb(255 255 255 / 0.18);
   --fleet-chip-fchv: rgb(5 18 20 / 0.18);
 
+  /*
+    Energy icon color: the tile's own hue, shaded toward the dark
+    foreground so each icon reads as a darker version of its tile
+    (3.3 to 1 or better against the tile surface behind its chip).
+    The two dark light-theme fills (violet, rose) cannot take a darker
+    version, so they shade toward white within the same hue instead.
+  */
+  --fleet-icon-no-electric: #46747c;
+  --fleet-icon-bev: #5d3a14;
+  --fleet-icon-novc-hev: #bdb5e5;
+  --fleet-icon-ovc-hev: #174b57;
+  --fleet-icon-fchv: #dda6be;
+
   /* Duotone photo blend. */
   --fleet-photo-opacity: 0.45;
 }
@@ -193,6 +206,13 @@
   --fleet-chip-novc-hev: rgb(255 255 255 / 0.18);
   --fleet-chip-ovc-hev: rgb(255 255 255 / 0.18);
   --fleet-chip-fchv: rgb(255 255 255 / 0.18);
+
+  /* Every dark-theme fill is bright, so every icon shade is dark. */
+  --fleet-icon-no-electric: #46747c;
+  --fleet-icon-bev: #7c4d1b;
+  --fleet-icon-novc-hev: #484970;
+  --fleet-icon-ovc-hev: #266672;
+  --fleet-icon-fchv: #763e5c;
 
   --fleet-photo-opacity: 0.55;
 }
