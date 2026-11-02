@@ -316,7 +316,7 @@ export function HeavyTurnChart() {
                         x2={cx}
                         y1={MASS_TOP}
                         y2={AXIS_Y}
-                        stroke="var(--border)"
+                        stroke="var(--brand-accent)"
                         strokeWidth="1"
                         strokeDasharray="4 4"
                         pointerEvents="none"
@@ -326,7 +326,7 @@ export function HeavyTurnChart() {
                         cy={yAxis(massPanel, massRow.avgMass)}
                         r="6"
                         fill="none"
-                        stroke="var(--chart-1)"
+                        stroke="var(--brand-accent)"
                         strokeWidth="2"
                         pointerEvents="none"
                       />
@@ -335,7 +335,7 @@ export function HeavyTurnChart() {
                         cy={yAxis(enginePanel, engineRow.avgEngineSize)}
                         r="6"
                         fill="none"
-                        stroke="var(--chart-2)"
+                        stroke="var(--brand-accent)"
                         strokeWidth="2"
                         pointerEvents="none"
                       />

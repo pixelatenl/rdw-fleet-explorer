@@ -38,14 +38,19 @@ export function VehicleTypesChart() {
               value={formatNumber(row.count)}
               percent={formatPercent(share)}
             >
-              {(trigger) => (
+              {(trigger, active) => (
                 <div
                   {...trigger}
                   className="chart-tooltip-trigger h-2.5 w-full overflow-hidden rounded-full bg-muted"
                 >
                   <div
                     className={`h-full rounded-full chart-gradient-${index < 6 ? 2 : 5}`}
-                    style={{ width: `${share * 100}%` }}
+                    style={{
+                      width: `${share * 100}%`,
+                      // While active the bar carries the accent outright;
+                      // the inline background overrides the token gradient.
+                      background: active ? "var(--brand-accent)" : undefined,
+                    }}
                   />
                 </div>
               )}

@@ -74,8 +74,11 @@ export function RegistrationYearChart() {
               key={row.year}
               label={String(row.year)}
               value={`${formatNumber(row.count)} vehicles`}
+              value2={
+                row.year === lastYear ? "(partial year)" : undefined
+              }
             >
-              {(trigger) => (
+              {(trigger, active) => (
                 <rect
                   {...trigger}
                   className="chart-tooltip-trigger"
@@ -84,9 +87,11 @@ export function RegistrationYearChart() {
                   width={Math.max(barWidth - gap, 1)}
                   height={barHeight}
                   fill={
-                    row.year >= 2020
-                      ? "url(#registration-year-recent)"
-                      : "url(#registration-year-older)"
+                    active
+                      ? "var(--brand-accent)"
+                      : row.year >= 2020
+                        ? "url(#registration-year-recent)"
+                        : "url(#registration-year-older)"
                   }
                   opacity={
                     row.year === lastYear
