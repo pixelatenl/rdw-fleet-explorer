@@ -57,6 +57,9 @@ interface FleetTile extends TreemapInputItem {
   chipToken: string;
   /** Per-key icon color token: the tile hue, shaded for contrast. */
   iconToken: string;
+  /** Per-tile photo treatment overrides, when the default reads washed out. */
+  photoOpacityToken?: string;
+  photoContrastToken?: string;
   /** Energy icons shown in the tile's top-left corner. */
   icons: IconName[];
 }
@@ -79,6 +82,8 @@ function buildTiles(): FleetTile[] {
       chipToken: "var(--fleet-chip-no-electric)",
       iconToken: "var(--fleet-icon-no-electric)",
       icons: ["fuel"],
+      photoOpacityToken: "var(--fleet-photo-opacity-no-electric)",
+      photoContrastToken: "var(--fleet-photo-contrast-no-electric)",
       image: "/images/gas-station-onno-blaauw.jpg",
     },
     {
@@ -358,6 +363,12 @@ export function FleetTreemap() {
             "--fleet-tile-ink": rect.inkToken,
             "--fleet-chip": rect.chipToken,
             "--fleet-icon": rect.iconToken,
+            ...(rect.photoOpacityToken
+              ? { "--fleet-photo-opacity": rect.photoOpacityToken }
+              : {}),
+            ...(rect.photoContrastToken
+              ? { "--fleet-photo-contrast": rect.photoContrastToken }
+              : {}),
           } as CSSProperties;
 
           return (

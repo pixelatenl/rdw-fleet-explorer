@@ -12,6 +12,10 @@ export interface TreemapInputItem {
   iconToken?: string;
   /** Optional per-tile energy icon names, passed through to the rect. */
   icons?: string[];
+  /** Optional per-tile photo opacity token override. */
+  photoOpacityToken?: string;
+  /** Optional per-tile photo contrast token override. */
+  photoContrastToken?: string;
 }
 
 export interface TreemapRect extends TreemapInputItem {

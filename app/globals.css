@@ -143,9 +143,10 @@
 
 /*
   Fleet treemap tile treatment. Tiles fill flat with the drivetrain
-  tokens above; the no-electric tile pins the light-theme chart-5 mint
-  (#86d6e5) in both themes, so it keeps one identity regardless of
-  theme, and tile text sits on a readability gradient of the tile
+  tokens above; the no-electric tile pins one mid teal in both themes
+  (the light chart-5 mint shaded 15% toward the dark foreground, so
+  the tile reads darker with more presence), and tile text sits on a
+  readability gradient of the tile
   color at 90% opacity over the duotone photo. Because the flat fills
   no longer shade toward the theme surface, each tile also carries a
   per-key ink token that keeps the text layer at roughly 4.5 to 1: the
@@ -155,7 +156,7 @@
   which take white.
 */
 :root {
-  --fleet-tile-no-electric: #86d6e5;
+  --fleet-tile-no-electric: #73b9c6;
   --fleet-ink-no-electric: var(--card-foreground);
   --fleet-ink-bev: var(--card-foreground);
   --fleet-ink-novc-hev: #ffffff;
@@ -193,10 +194,18 @@
 
   /* Duotone photo blend. */
   --fleet-photo-opacity: 0.45;
+  --fleet-photo-contrast: 1.05;
+
+  /*
+    The no-electric gas station photo reads washed out at the default
+    blend, so that tile's photo carries more presence and contrast.
+  */
+  --fleet-photo-opacity-no-electric: 0.6;
+  --fleet-photo-contrast-no-electric: 1.3;
 }
 
 .dark {
-  --fleet-tile-no-electric: #86d6e5;
+  --fleet-tile-no-electric: #73b9c6;
   --fleet-ink-no-electric: var(--primary-foreground);
   --fleet-ink-bev: var(--primary-foreground);
   --fleet-ink-novc-hev: var(--primary-foreground);
@@ -218,6 +227,7 @@
   --fleet-icon-fchv: #492d3f;
 
   --fleet-photo-opacity: 0.55;
+  --fleet-photo-opacity-no-electric: 0.65;
 }
 
 @theme inline {
@@ -330,7 +340,7 @@
 
 .fleet-photo {
   transform: scale(1.12) translate(-2%, -1.5%);
-  filter: grayscale(1) contrast(1.05);
+  filter: grayscale(1) contrast(var(--fleet-photo-contrast, 1.05));
   mix-blend-mode: luminosity;
   opacity: var(--fleet-photo-opacity);
   animation: fleet-photo-pan 24s ease-in-out infinite alternate;
