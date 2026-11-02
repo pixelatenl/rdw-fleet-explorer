@@ -269,7 +269,15 @@ export default function Home() {
             className="ferrari-coda-overlay absolute inset-0"
           />
           <div className="relative flex flex-col gap-5 p-6 sm:gap-6 sm:p-10 lg:p-12">
-            <p className="text-sm font-medium tracking-wide text-primary uppercase">
+            <p
+              className="self-start rounded-full px-3 py-1 text-sm font-medium tracking-wide text-primary uppercase"
+              style={{
+                // Translucent foreground scrim, the same chip treatment
+                // as the share pill on the treemap tiles.
+                backgroundColor:
+                  "color-mix(in oklab, var(--foreground) 10%, transparent)",
+              }}
+            >
               A completely unrelated reward
             </p>
             <h2 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
