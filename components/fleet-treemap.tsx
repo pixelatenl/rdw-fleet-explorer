@@ -422,7 +422,7 @@ export function FleetTreemap() {
                       className="absolute top-2 left-2 flex items-center gap-1 rounded-full p-1.5"
                       style={{
                         color: "var(--fleet-icon)",
-                        backgroundColor: "var(--fleet-chip)",
+                        backgroundColor: "var(--fleet-icon-chip)",
                       }}
                     >
                       {(rect.icons ?? []).map((icon) =>
