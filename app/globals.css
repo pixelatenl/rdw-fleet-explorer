@@ -301,9 +301,8 @@
 /*
   Fleet treemap depth and motion. Tiles lift on hover and keyboard
   focus, dropping a soft shadow beneath them. The photo layer reads as
-  duotone texture: grayscale, luminosity
-  blended into the token base fill, slowly panning inside the clipped
-  tile. Everything is disabled under prefers-reduced-motion.
+  duotone texture: grayscale, luminosity blended into the token base
+  fill. Everything is disabled under prefers-reduced-motion.
 */
 .fleet-tile {
   border-radius: 12px;
@@ -329,22 +328,10 @@
   transform: translate(3px, -1px) scale(0.88);
 }
 
-@keyframes fleet-photo-pan {
-  from {
-    transform: scale(1.12) translate(-2%, -1.5%);
-  }
-  to {
-    transform: scale(1.24) translate(2%, 1.5%);
-  }
-}
-
 .fleet-photo {
-  transform: scale(1.12) translate(-2%, -1.5%);
   filter: grayscale(1) contrast(var(--fleet-photo-contrast, 1.05));
   mix-blend-mode: luminosity;
   opacity: var(--fleet-photo-opacity);
-  animation: fleet-photo-pan 24s ease-in-out infinite alternate;
-  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -353,9 +340,5 @@
   .fleet-tile:focus-visible {
     transition: none;
     transform: none;
-  }
-
-  .fleet-photo {
-    animation: none;
   }
 }
