@@ -21,8 +21,6 @@ import {
   type TreemapInputItem,
 } from "@/lib/treemap";
 
-/** Below this container width the treemap falls back to a vertical stack. */
-const MOBILE_BREAKPOINT = 640;
 /** Nominal ratio units for the pre-measurement (server) layout, 16:9. */
 const REFERENCE_WIDTH = 1600;
 const REFERENCE_HEIGHT = 900;
@@ -31,9 +29,15 @@ const MIN_TILE_PX = 8;
 /** Spacing between tiles; each tile is inset by half of this per side. */
 const TILE_GAP_PX = 6;
 const TILE_INSET_PX = TILE_GAP_PX / 2;
-/** Stack-mode tile heights are proportional, clamped to this minimum. */
+/**
+ * Stacked tile heights are proportional, clamped to a per-range minimum:
+ * below sm the compact metrics fit in 64px; from sm up the current
+ * sizes need a label row plus a full-size count line (75px), so the
+ * clamp rises to keep every stacked tile readable.
+ */
 const MIN_STACK_TILE_PX = 64;
-/** Nominal total height of the mobile stack before clamping. */
+const MIN_STACK_TILE_SM_PX = 80;
+/** Nominal total height of the stacked layout before clamping. */
 const STACK_TOTAL_PX = 440;
 /** Tiles smaller than this in either dimension hide their text layer. */
 const MIN_TEXT_WIDTH_PX = 84;
@@ -44,25 +48,37 @@ const MIN_ICON_HEIGHT_PX = 40;
 /** Energy icon size, in px. */
 const ICON_PX = 40;
 /**
- * Compact (stack) content rule, in px. Below sm the count and pill step
- * one size down and the text inset tightens to p-1, so a tile fits its
- * full content when its height covers the label row, the row gap, and
- * the stepped-down count line. The chip sits at the top-right in the
- * stack and the pill rides the count line, so neither adds height; the
- * threshold is calibrated so the no-electric, battery electric, and
- * full hybrid tiles (all at their 64px stack minimum at a 390px
- * viewport) keep their full content.
+ * Content rule for the stacked tiles, in px. The label is a 10px line
+ * at the inherited 1.5 line height and the rows sit gap-1 apart; the
+ * inset and the count line height depend on the range: below sm the
+ * count and pill step one size down on a p-1 inset, from sm up the
+ * current sizes on a p-2 inset apply.
  */
-const COMPACT_TEXT_INSET_PX = 4;
 const LABEL_LINE_PX = 15;
 const LABEL_COUNT_GAP_PX = 4;
-/** Line heights of the stepped-down count sizes used in the stack. */
+/** Below-sm metrics: p-1 inset and the stepped-down count lines. */
+const COMPACT_TEXT_INSET_PX = 4;
 const COMPACT_COUNT_LINE_PX: Record<string, number> = {
   "text-5xl": 48,
   "text-3xl": 36,
   "text-2xl": 32,
   "text-xl": 28,
 };
+/** From-sm metrics: p-2 inset and the current count lines. */
+const CURRENT_TEXT_INSET_PX = 8;
+const CURRENT_COUNT_LINE_PX: Record<string, number> = {
+  "text-6xl": 60,
+  "text-4xl": 40,
+  "text-3xl": 36,
+  "text-2xl": 32,
+};
+/**
+ * Vertical space the current top-left chip (a 40px icon on p-2,
+ * anchored top-2) needs above the text block before the two can share
+ * a tile. Only the non-spacious anchor is spelled out: the stack rows
+ * short enough to fall under the rule never reach the spacious sizes.
+ */
+const CURRENT_CHIP_CLEAR_PX = 8 + 56 + 4;
 /** Count-up: short delay, then two seconds of slow-to-fast easing. */
 const COUNT_UP_DELAY_MS = 300;
 const COUNT_UP_MS = 2000;
@@ -245,9 +261,12 @@ function tileNarrative(tile: {
  * vehicle with fuel data. Tiles are positioned by the pure squarify
  * function in src/lib/treemap.ts: percentage coordinates from nominal
  * ratio units until the container is measured, exact pixels once the
- * ResizeObserver fires. Below 640 px the layout becomes a vertical stack
- * of full-width tiles in descending order. Missing photos degrade to a
- * color-only tile, since the image is a plain CSS background layer.
+ * ResizeObserver fires. Below the xl viewport the layout becomes a
+ * vertical stack of full-width tiles in descending order; below sm
+ * those stacked tiles switch to compact metrics, and a content rule
+ * degrades any tile too short for its content instead of letting it
+ * collide. Missing photos degrade to a color-only tile, since the
+ * image is a plain CSS background layer.
  *
  * Hovering or keyboard-focusing a tile opens the shared cursor tooltip
  * with the tile's figures and its context sentence, and also updates
@@ -290,6 +309,31 @@ export function FleetTreemap() {
     return () => observer.disconnect();
   }, []);
 
+  // The stack spans everything below xl, and its tile metrics differ
+  // between below-sm phones and the sm-to-xl range, so the component
+  // tracks both breakpoints itself; media queries keep the switches
+  // exactly aligned with the responsive classes. Both start at the
+  // wide-layout values so the unmeasured server paint matches the
+  // current desktop rendering, and the values only matter once the
+  // ResizeObserver has fired.
+  const [isSm, setIsSm] = useState(true);
+  const [isXl, setIsXl] = useState(true);
+  useEffect(() => {
+    const smQuery = window.matchMedia("(min-width: 40rem)");
+    const xlQuery = window.matchMedia("(min-width: 80rem)");
+    const update = () => {
+      setIsSm(smQuery.matches);
+      setIsXl(xlQuery.matches);
+    };
+    update();
+    smQuery.addEventListener("change", update);
+    xlQuery.addEventListener("change", update);
+    return () => {
+      smQuery.removeEventListener("change", update);
+      xlQuery.removeEventListener("change", update);
+    };
+  }, []);
+
   useEffect(() => {
     // Animate the counts from 0 once, unless the user prefers reduced
     // motion; re-renders (hover, focus, resize) never retrigger it.
@@ -314,7 +358,9 @@ export function FleetTreemap() {
   }, []);
 
   const measured = size !== null;
-  const stack = measured && size.width < MOBILE_BREAKPOINT;
+  // Stacked below xl, horizontal aspect-[16/9] from xl up; the wide
+  // layout and its tile rendering stay untouched there.
+  const stack = measured && !isXl;
   const tiles = buildTiles();
   const rects = squarifiedTreemap(
     tiles,
@@ -348,17 +394,20 @@ export function FleetTreemap() {
               // must not be clipped by the container, so no rounding or
               // overflow clipping here.
               " flex flex-col gap-1.5"
-            : // Absolute layout: tiles sit 3px inset with a 12px radius,
-              // so the clip radius must clear their corner arcs (which
-              // reach ~13.4px); 16px gives comfortable margin.
-              " overflow-hidden rounded-2xl aspect-[4/5] sm:aspect-[16/9]"
+            : // Absolute layout, measured at xl and up: tiles sit 3px
+              // inset with a 12px radius, so the clip radius must clear
+              // their corner arcs (which reach ~13.4px); 16px gives
+              // comfortable margin. The 4/5 base covers the unmeasured
+              // below-xl paint, closer to the stack that follows.
+              " overflow-hidden rounded-2xl aspect-[4/5] xl:aspect-[16/9]"
         }`}
       >
         {rects.map((rect) => {
           const share = rect.count / withFuelData;
           const narrative = tileNarrative(rect);
+          const compact = stack && !isSm;
           const stackHeight = Math.max(
-            MIN_STACK_TILE_PX,
+            compact ? MIN_STACK_TILE_PX : MIN_STACK_TILE_SM_PX,
             share * STACK_TOTAL_PX,
           );
           const textWidth = stack ? (size?.width ?? 0) : rect.width - TILE_GAP_PX;
@@ -377,50 +426,51 @@ export function FleetTreemap() {
               : "100%";
 
           /*
-            Below-sm compact treatment. In the stack (and, via the sm:
-            pairs, in the unmeasured below-sm paint) the chip shrinks to
-            28px at the top-right, the count and pill step one size
-            down, and the text inset tightens to p-1. The chip sits
-            opposite the bottom-anchored text column so the two can
-            share the short 64px stack tiles without overlapping.
+            Responsive tile treatment, via sm: pairs so the wide layout
+            is untouched. Below sm the chip shrinks to 28px at the
+            top-right, opposite the bottom-anchored text column, the
+            count and pill step one size down, and the text inset
+            tightens to p-1; from sm up every value is the current one.
           */
           const compactCountClass = compactCountSizeClass(share);
-          const countClass = stack
-            ? compactCountClass
-            : `${compactCountClass} sm:${countSizeClass(share)}`;
-          const pillClass = stack ? "text-xs" : "text-xs sm:text-sm";
-          const chipPadClass = stack ? "p-1" : "p-1 sm:p-2";
-          const iconSizeClass = stack ? "h-5 w-5" : "h-5 w-5 sm:h-10 sm:w-10";
-          const chipPositionClass = stack
-            ? spacious
-              ? "top-3 right-3"
-              : "top-2 right-2"
-            : spacious
-              ? "top-3 right-3 sm:top-4 sm:left-4 sm:right-auto"
-              : "top-2 right-2 sm:left-2 sm:right-auto";
-          const textPadClass = spacious
-            ? "p-3 sm:p-4"
-            : stack
-              ? "p-1"
-              : "p-1 sm:p-2";
+          const countClass = `${compactCountClass} sm:${countSizeClass(share)}`;
+          const pillClass = "text-xs sm:text-sm";
+          const chipPadClass = "p-1 sm:p-2";
+          const iconSizeClass = "h-5 w-5 sm:h-10 sm:w-10";
+          const chipPositionClass = spacious
+            ? "top-3 right-3 sm:top-4 sm:left-4 sm:right-auto"
+            : "top-2 right-2 sm:left-2 sm:right-auto";
+          const textPadClass = spacious ? "p-3 sm:p-4" : "p-1 sm:p-2";
 
           /*
-            Content rule for the compact stack: the label and count
-            block must fit the tile height. While it fits, the chip and
-            pill ride along (top-right and inline with the count); once
-            it does not, the chip, pill, and count drop out and only
-            the label remains, so nothing ever collides or overflows.
+            Content rule for the stacked tiles, measured with the
+            layout math: a tile keeps its full content while its height
+            covers the label-and-count block, and — from sm up, where
+            the chip returns to the top-left — while that block also
+            clears the chip. Tiles that fall short drop the chip and
+            the pill first (the label and count remain), then the
+            count, so nothing ever collides or overflows. The compact
+            thresholds are calibrated so the no-electric, battery
+            electric, and full hybrid tiles keep their full content at
+            a 390px viewport.
           */
-          const compactCountLinePx =
-            COMPACT_COUNT_LINE_PX[compactCountClass] ?? 28;
-          const fullContentMinPx =
-            COMPACT_TEXT_INSET_PX * 2 +
-            LABEL_LINE_PX +
-            LABEL_COUNT_GAP_PX +
-            compactCountLinePx;
-          const fullContent = !stack || stackHeight >= fullContentMinPx;
-          const showChip = showIcons && fullContent;
-          const showFigures = showText && fullContent;
+          const countLinePx = compact
+            ? (COMPACT_COUNT_LINE_PX[compactCountClass] ?? 28)
+            : (CURRENT_COUNT_LINE_PX[countSizeClass(share)] ?? 32);
+          const insetPx = compact
+            ? COMPACT_TEXT_INSET_PX
+            : CURRENT_TEXT_INSET_PX;
+          const textBlockPx =
+            insetPx + LABEL_LINE_PX + LABEL_COUNT_GAP_PX + countLinePx;
+          const labelCountMinPx = textBlockPx + insetPx;
+          const fullContentMinPx = compact
+            ? labelCountMinPx
+            : textBlockPx + CURRENT_CHIP_CLEAR_PX;
+          const fitsFullContent = !stack || stackHeight >= fullContentMinPx;
+          const fitsLabelCount = !stack || stackHeight >= labelCountMinPx;
+          const showChip = showIcons && fitsFullContent;
+          const showPill = fitsFullContent;
+          const showCount = showText && fitsLabelCount;
 
           const positionStyle: CSSProperties = stack
             ? { height: stackHeight, minHeight: MIN_TILE_PX }
@@ -545,19 +595,21 @@ export function FleetTreemap() {
                       >
                         {rect.label}
                       </p>
-                      {showFigures ? (
+                      {showCount ? (
                         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                           <p
                             className={`font-bold tabular-nums ${countClass}`}
                           >
                             {formatNumber(Math.round(rect.count * countProgress))}
                           </p>
-                          <span
-                            className={`rounded-full px-2 py-0.5 font-medium tabular-nums ${pillClass}`}
-                            style={{ backgroundColor: "var(--fleet-chip)" }}
-                          >
-                            {formatPercent(share)}
-                          </span>
+                          {showPill ? (
+                            <span
+                              className={`rounded-full px-2 py-0.5 font-medium tabular-nums ${pillClass}`}
+                              style={{ backgroundColor: "var(--fleet-chip)" }}
+                            >
+                              {formatPercent(share)}
+                            </span>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>
