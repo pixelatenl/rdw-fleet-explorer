@@ -98,31 +98,32 @@
 /*
   Drivetrain palette: the four electrified drivetrains are categories,
   not a sequence, so each gets its own distinct hue that pops in both
-  themes. Battery electric anchors on the brand teal; full hybrid takes
-  tones derived from the family orange; plug-in hybrid and fuel cell add
-  violet and rose so even the tiny fuel cell segment stays identifiable.
+  themes. Battery electric takes the family orange, full hybrid the
+  violet, plug-in hybrid the brand teal and fuel cell the rose.
   Contrast audit (3 to 1 minimum against the theme's surfaces, light
-  page #eaf6f9 / card #f6fbfc, dark #0f353d / #14414c): light bev is
-  darkened from the brand #48b9d1, which reaches only 2.2 to 1 on the
-  light surfaces, to #2e91a9 (3.3 to 1) while keeping the teal hue;
-  light hev 3.4 to 1, phev 4.8 to 1, fchv 5.1 to 1; dark bev 4.8 to 1,
-  hev 4.4 to 1, phev 3.7 to 1, fchv 3.7 to 1. Adjacent bar segments lean
-  on hue separation rather than 3 to 1 luminance steps: with every hue
-  already constrained to 3 to 1 against a light background, forcing 3 to
-  1 between all four neighbours would push two of the hues to near
-  black, which the distinct-hue design exists to avoid.
+  page #eaf6f9 / card #f6fbfc, dark #0f353d / #14414c): light bev 3.4
+  to 1, hev 4.8 to 1, phev 3.3 to 1, fchv 5.1 to 1; dark bev 5.3 to 1,
+  hev 4.5 to 1, phev 4.8 to 1, fchv 4.4 to 1. The light plug-in teal is
+  darkened from the brand #48b9d1, which reaches only 2.1 to 1 on the
+  light surfaces, to #2e91a9 (3.3 to 1) while keeping the teal hue. The
+  orange and rose pair reaches only 1.5 to 1 (light) and 1.2 to 1
+  (dark): no orange variant can clear 3 to 1 against the rose while
+  keeping 3 to 1 against its own background (light needs the orange
+  near white or near black, dark needs it below the background floor),
+  so both themes lean on hue separation there, as between the other
+  neighbours.
 */
 :root {
-  --drivetrain-bev: #2e91a9;
-  --drivetrain-hev: #c96a15;
-  --drivetrain-phev: #6d5bc6;
+  --drivetrain-bev: #c96a15;
+  --drivetrain-hev: #6d5bc6;
+  --drivetrain-phev: #2e91a9;
   --drivetrain-fchv: #b33a6e;
 }
 
 .dark {
-  --drivetrain-bev: #48b9d1;
-  --drivetrain-hev: #f48822;
-  --drivetrain-phev: #9b8ce0;
+  --drivetrain-bev: #f48822;
+  --drivetrain-hev: #9b8ce0;
+  --drivetrain-phev: #48b9d1;
   --drivetrain-fchv: #e86ba4;
 }
 
@@ -135,13 +136,13 @@
   the text layer at roughly 4.5 to 1: the dark theme's fills are all
   bright hues, so every tile flips to the dark ink there, while the
   light theme keeps the dark foreground ink except on the two darker
-  hues (plug-in hybrid, fuel cell), which take white.
+  hues (full hybrid violet, fuel cell rose), which take white.
 */
 :root {
   --fleet-ink-no-electric: var(--card-foreground);
   --fleet-ink-bev: var(--card-foreground);
-  --fleet-ink-novc-hev: var(--card-foreground);
-  --fleet-ink-ovc-hev: #ffffff;
+  --fleet-ink-novc-hev: #ffffff;
+  --fleet-ink-ovc-hev: var(--card-foreground);
   --fleet-ink-fchv: #ffffff;
 
   /* Duotone photo blend and tile edge treatment. */
