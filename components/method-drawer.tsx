@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { snapshot } from "@/data/snapshot";
+import { cn } from "@/lib/utils";
 
 const PANEL_ID = "method-drawer-panel";
 
@@ -13,6 +14,7 @@ const PANEL_ID = "method-drawer-panel";
  */
 export function MethodDrawer() {
   const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -24,10 +26,7 @@ export function MethodDrawer() {
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
+      if (event.key === "Escape") closeDrawer();
     }
     document.addEventListener("keydown", onKeyDown);
     return () => {
@@ -36,12 +35,27 @@ export function MethodDrawer() {
     };
   }, [open]);
 
+  // Slide the panel in one frame after the hidden attribute comes
+  // off, so the transform transition has a starting style to run
+  // from; without the extra frame the panel would appear in place.
+  useEffect(() => {
+    if (!open) return;
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => setShown(true));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [open]);
+
   function openDrawer() {
     setOpen(true);
   }
 
   function closeDrawer() {
-    setOpen(false);
+    setShown(false);
     triggerRef.current?.focus();
   }
 
@@ -81,7 +95,10 @@ export function MethodDrawer() {
         inert={!open}
         aria-hidden={!open}
         onClick={closeDrawer}
-        className="fixed inset-0 z-[60] bg-black/50"
+        className={cn(
+          "fixed inset-0 z-[60] bg-black/50 transition-opacity duration-200",
+          shown ? "opacity-100" : "opacity-0",
+        )}
       />
 
       <div
@@ -95,7 +112,21 @@ export function MethodDrawer() {
         aria-hidden={!open}
         tabIndex={-1}
         onKeyDown={handleTab}
-        className="fixed inset-y-0 right-0 z-[60] flex w-[480px] max-w-[90vw] flex-col border-l border-border bg-card shadow-xl"
+        onTransitionEnd={(event) => {
+          // The slide-out finished: give the panel back its hidden
+          // state. Interrupted transitions never reach this branch.
+          if (
+            event.target === panelRef.current &&
+            event.propertyName === "transform" &&
+            !shown
+          ) {
+            setOpen(false);
+          }
+        }}
+        className={cn(
+          "fixed inset-y-0 right-0 z-[60] flex w-[480px] max-w-[90vw] flex-col border-l border-border bg-card shadow-xl transition-transform duration-300 ease-in-out",
+          shown ? "translate-x-0" : "translate-x-full",
+        )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-border p-6">
           <div>
