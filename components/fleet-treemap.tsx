@@ -58,7 +58,7 @@ function buildTiles(): FleetTile[] {
       key: "no-electric",
       label: "No electric drive",
       count: withFuelData - electricVehicles,
-      colorToken: "var(--chart-5)",
+      colorToken: "var(--fleet-tile-no-electric)",
       inkToken: "var(--fleet-ink-no-electric)",
       image: "/images/gas-station-ali-mkumbwa.jpg",
     },
