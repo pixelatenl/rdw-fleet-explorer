@@ -285,6 +285,17 @@
   box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.35);
 }
 
+/*
+  Optical alignment of the energy icons. Zap's bolt is symmetric around
+  its box center, but the fuel pump is a dense tall outline whose mass
+  (body, window, base line) sits left and low, with only a thin hose
+  reaching right, so at equal sizes it reads bigger and off-center next
+  to the bolt. It shrinks a step and nudges right and up to match.
+*/
+.fleet-icon-fuel {
+  transform: translate(3px, -1px) scale(0.88);
+}
+
 @keyframes fleet-photo-pan {
   from {
     transform: scale(1.06);

@@ -419,7 +419,7 @@ export function FleetTreemap() {
                     >
                       {(rect.icons ?? []).map((icon) =>
                         icon === "fuel" ? (
-                          <Fuel key="fuel" size={ICON_PX} />
+                          <Fuel key="fuel" size={ICON_PX} className="fleet-icon-fuel" />
                         ) : (
                           <Zap key="zap" size={ICON_PX} />
                         ),
