@@ -47,7 +47,7 @@ async function fetchFerrariRecords() {
   for (;;) {
     const page = await query(
       DATASET_FERRARI,
-      `select kenteken, voertuigsoort, handelsbenaming, eerste_kleur ` +
+      `select kenteken, voertuigsoort, handelsbenaming, eerste_kleur, datum_eerste_toelating ` +
         `order by kenteken limit ${FERRARI_PAGE_SIZE} offset ${offset}`
     );
     records.push(...page);
@@ -237,6 +237,30 @@ async function main() {
   }
   const [topTractorName, topTractorCount] =
     [...tractorModelCounts.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
+  // First admission year of a record, from the YYYYMMDD register date;
+  // null where the register records no parseable date.
+  const ferrariFirstYear = (row) => {
+    const date = row.datum_eerste_toelating ?? "";
+    return /^\d{8}/.test(date) ? Number(date.slice(0, 4)) : null;
+  };
+  // The model and year of the lone motorcycle, if the extract holds
+  // exactly one; null as soon as there is none or more than one.
+  const ferrariMotorcycle =
+    ferrariRecords.filter((row) => row.voertuigsoort === "Motorfiets")
+      .length === 1
+      ? ferrariRecords.find((row) => row.voertuigsoort === "Motorfiets")
+      : null;
+  // The record with the earliest first admission date in the extract.
+  // The strict comparison keeps the first record on a tie, and the
+  // fetch is kenteken-ordered, so the pick is deterministic.
+  let ferrariOldest = null;
+  for (const row of ferrariRecords) {
+    const year = ferrariFirstYear(row);
+    if (year === null) continue;
+    if (!ferrariOldest || year < ferrariOldest.year) {
+      ferrariOldest = { model: ferrariName(row), year };
+    }
+  }
   const ferrari = {
     total: ferrariRecords.length,
     red: ferrariRecords.filter((row) => ferrariColor(row).toUpperCase() === "ROOD")
@@ -256,6 +280,11 @@ async function main() {
     motorcycle: ferrariRecords.filter(
       (row) => row.voertuigsoort === "Motorfiets"
     ).length,
+    motorcycleModel: ferrariMotorcycle ? ferrariName(ferrariMotorcycle) : null,
+    motorcycleYear: ferrariMotorcycle
+      ? ferrariFirstYear(ferrariMotorcycle)
+      : null,
+    oldest: ferrariOldest,
   };
 
   // Fuel registrations; unlabelled rows are kept as Unknown.

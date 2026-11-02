@@ -283,6 +283,12 @@
       "count": 60
     },
     "tractorsWithColor": 0,
-    "motorcycle": 1
+    "motorcycle": 1,
+    "motorcycleModel": "125",
+    "motorcycleYear": 1952,
+    "oldest": {
+      "model": "166",
+      "year": 1948
+    }
   }
 }

@@ -26,6 +26,12 @@ export interface FerrariTopModel {
   count: number;
 }
 
+/** Model and first admission year of a single record. */
+export interface FerrariModelYear {
+  model: string;
+  year: number;
+}
+
 /** Figures of the closing Ferrari card, from the RDW Ferrari brand extract. */
 export interface Ferrari {
   total: number;
@@ -36,6 +42,12 @@ export interface Ferrari {
   tractorsTopModel: FerrariTopModel | null;
   tractorsWithColor: number;
   motorcycle: number;
+  /** Handelsbenaming of the motorcycle record, null unless exactly one exists. */
+  motorcycleModel: string | null;
+  /** First admission year of the motorcycle record, null when not recorded. */
+  motorcycleYear: number | null;
+  /** Model and year of the record with the earliest first admission date. */
+  oldest: FerrariModelYear | null;
 }
 
 export interface Snapshot {

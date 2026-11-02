@@ -54,11 +54,12 @@ export default function Home() {
 
   /*
     Ferrari coda: every figure of the closing card, from the snapshot
-    only. The copy is assembled sentence by sentence so two omissions
+    only. The copy is assembled sentence by sentence so the omissions
     can keep the humor truthful as the data drifts: the Raptor quip
-    renders only while the top tractor model is a Raptor, and the
+    renders only while the top tractor model is a Raptor, the
     not-one-red sentence only while the register records no tractor
-    color at all.
+    color at all, and the motorcycle and oldest sentences only while
+    the snapshot still carries their model and year.
   */
   const ferrari = snapshot.ferrari;
   const codaSentences = [
@@ -80,9 +81,20 @@ export default function Home() {
       "And not one of them is red, at least on paper: the register does not record a color for a single tractor.",
     );
   }
-  codaSentences.push(
-    "And one Ferrari motorcycle, which raises questions we will not answer here.",
-  );
+  if (ferrari.motorcycleModel && ferrari.motorcycleYear) {
+    codaSentences.push(
+      `And one Ferrari motorcycle: a ${ferrari.motorcycleYear} ${ferrari.motorcycleModel}, which raises questions we will not answer here.`,
+    );
+  } else if (ferrari.motorcycle > 0) {
+    codaSentences.push(
+      `And ${formatNumber(ferrari.motorcycle)} Ferrari motorcycles, which raise questions we will not answer here.`,
+    );
+  }
+  if (ferrari.oldest) {
+    codaSentences.push(
+      `The oldest Ferrari in the register, a ${ferrari.oldest.year} ${ferrari.oldest.model}, at least makes sense.`,
+    );
+  }
   const codaCopy = codaSentences.join(" ");
 
   const codaStats = [
