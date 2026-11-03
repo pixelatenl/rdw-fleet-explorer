@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:narration": "node scripts/narration-selftest.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.66.0",

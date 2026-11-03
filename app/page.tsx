@@ -11,11 +11,16 @@ import { FuelRegistrationsChart } from "@/components/fuel-registrations-chart";
 import { VehicleTypesChart } from "@/components/vehicle-types-chart";
 import { RegistrationYearChart } from "@/components/registration-year-chart";
 import { HeavyTurnChart } from "@/components/heavy-turn-chart";
+import { AiInsight } from "@/components/ai-insight";
 import { snapshot, electricVehicles, formatNumber, formatDate } from "@/data/snapshot";
 
 export default function Home() {
   const latestCohort =
     snapshot.engineSizeByYear[snapshot.engineSizeByYear.length - 1];
+
+  // AI insight narrations, generated at snapshot time per visual; each
+  // block renders only when its narration exists.
+  const insights = snapshot.narration?.visuals;
 
   // Fuel cell coverage, derived from the snapshot: the total over all
   // recorded fuels, plus the hydrogen and petrol entries. The sentence
@@ -149,6 +154,7 @@ export default function Home() {
         <div className="mt-8">
           <FleetTreemap />
         </div>
+        {insights?.treemap && <AiInsight text={insights.treemap} />}
       </section>
 
       <section className="mb-12">
@@ -186,6 +192,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <FuelRegistrationsChart />
+            {insights?.fuelRegistrations && (
+              <AiInsight text={insights.fuelRegistrations} />
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -198,6 +207,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <VehicleTypesChart />
+            {insights?.vehicleTypes && (
+              <AiInsight text={insights.vehicleTypes} />
+            )}
           </CardContent>
         </Card>
       </section>
@@ -245,6 +257,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <HeavyTurnChart />
+            {insights?.heavyTurn && <AiInsight text={insights.heavyTurn} />}
             <p className="mt-4 text-sm text-muted-foreground">
               Both lines show averages, not the exact middle, so a few
               extreme cars can pull a year up or down. In the{" "}
