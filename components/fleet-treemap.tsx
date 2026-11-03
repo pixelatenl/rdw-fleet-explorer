@@ -384,6 +384,10 @@ export function FleetTreemap() {
 
   return (
     <figure>
+      <figcaption className="mb-3 text-lg font-semibold text-primary">
+        Vehicles by drivetrain, sized by count. Hybrid drivetrains are
+        grouped by their recorded hybrid class.
+      </figcaption>
       <div
         ref={containerRef}
         role="img"
@@ -627,10 +631,6 @@ export function FleetTreemap() {
       >
         {strip}
       </div>
-      <figcaption className="mt-2 text-xs text-muted-foreground">
-        Vehicles by drivetrain, sized by count. Hybrid drivetrains are
-        grouped by their recorded hybrid class.
-      </figcaption>
     </figure>
   );
 }
