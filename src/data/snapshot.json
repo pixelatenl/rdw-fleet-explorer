@@ -297,7 +297,8 @@
       "treemap": "The treemap shows 15,173,606 Dutch vehicles split by drivetrain, with 2,961,962 (19.5%) having electric drive. Battery electric vehicles make up 1,245,906 (8.2%) of the fleet.",
       "fuelRegistrations": "Petrol leads with 11,308,514 registrations, making up 66.4% of the total 17,042,252 fuel registrations.",
       "vehicleTypes": "This chart shows the count of every vehicle in the register by its type, and 10,828,729 of them are passenger cars.",
-      "heavyTurn": "The chart shows two lines: one for average car mass rising from 1,195 kg in 1975 to 1,669 kg in 2026, and another for average engine size falling from 2,673 cc in 1975 to 1,406 cc in 2018 before rising to 1,613 cc in 2026. The most notable trend is cars getting heavier while engines shrink and then partially rebound."
+      "heavyTurn": "The chart shows two lines: one for average car mass rising from 1,195 kg in 1975 to 1,669 kg in 2026, and another for average engine size falling from 2,673 cc in 1975 to 1,406 cc in 2018 before rising to 1,613 cc in 2026. The most notable trend is cars getting heavier while engines shrink and then partially rebound.",
+      "entryYears": "The chart shows how many vehicles on Dutch roads today were first registered each decade since 1970, with the tallest bar in the 2020s. More than half of all registered vehicles entered the fleet in 2017 or later."
     }
   }
 }
