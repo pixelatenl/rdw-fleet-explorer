@@ -154,7 +154,9 @@ export default function Home() {
         <div className="mt-8">
           <FleetTreemap />
         </div>
-        {insights?.treemap && <AiInsight text={insights.treemap} />}
+        {insights?.treemap && (
+          <AiInsight text={insights.treemap} outlined />
+        )}
       </section>
 
       <section className="mb-12">
@@ -257,7 +259,6 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <HeavyTurnChart />
-            {insights?.heavyTurn && <AiInsight text={insights.heavyTurn} />}
             <p className="mt-4 text-sm text-muted-foreground">
               Both lines show averages, not the exact middle, so a few
               extreme cars can pull a year up or down. In the{" "}
@@ -266,6 +267,7 @@ export default function Home() {
               of {formatNumber(latestCohort.count)} cars have no engine
               size to measure at all.
             </p>
+            {insights?.heavyTurn && <AiInsight text={insights.heavyTurn} />}
           </CardContent>
         </Card>
       </section>
