@@ -3,6 +3,10 @@ name: Refresh data snapshot
 # Weekly server-side aggregation against the keyless RDW SODA API.
 # Writes src/data/snapshot.json and commits it to main, which triggers
 # the build workflow. No raw vehicle records are stored.
+#
+# The Mistral key is present only on this job (scheduled and manual
+# dispatch alike); the push and PR build jobs run without it and the
+# snapshot script skips narration when the key is absent.
 
 on:
   schedule:
@@ -22,6 +26,8 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/snapshot.mjs
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
       - name: Commit snapshot if changed
         run: |
           git config user.name "rdw-snapshot-bot"

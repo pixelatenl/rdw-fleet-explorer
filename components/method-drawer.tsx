@@ -102,6 +102,14 @@ export function MethodDrawer() {
           tied most common models. No raw records are stored.
         </li>
         <li>
+          The AI insight blocks beneath the charts are generated at
+          data-refresh time by Mistral (mistral-small-latest) from the
+          same verified aggregates that power the charts. Every figure
+          is computed from the official register and only the
+          explanation text is AI-generated; the feature is experimental
+          and a narration regenerates only when the data changes.
+        </li>
+        <li>
           Entry year is the first registration in the Netherlands,
           so imported used vehicles count in the year they arrived,
           not their build year. Because the register holds the

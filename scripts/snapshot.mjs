@@ -8,9 +8,10 @@
   The RDW SODA2 endpoints are keyless and CC0 licensed.
 */
 
-import { writeFile, mkdir } from "node:fs/promises";
+import { writeFile, readFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { narrate } from "./narration.mjs";
 
 const BASE = "https://opendata.rdw.nl/resource";
 const DATASET_BASE = "m9d7-ebf2";
@@ -444,6 +445,28 @@ async function main() {
   );
   await mkdir(dir, { recursive: true });
   const target = path.join(dir, "snapshot.json");
+
+  // Narration step: the previous narration is reused whenever the data
+  // signature is unchanged, and without MISTRAL_API_KEY (plain push
+  // build, local run) the step is skipped entirely and any existing
+  // narrations are left untouched. A missing or failed narration
+  // never fails the snapshot.
+  let existingNarration = null;
+  try {
+    existingNarration = JSON.parse(await readFile(target, "utf8")).narration ?? null;
+  } catch {
+    // First run: no snapshot to reuse a narration from.
+  }
+  try {
+    snapshot.narration = await narrate(snapshot, existingNarration);
+  } catch (error) {
+    // Fail-soft: an unexpected narration error must never fail the
+    // snapshot; the existing narrations stay and this run adds none.
+    console.error(`Narration skipped: ${error.message}`);
+    snapshot.narration = existingNarration;
+  }
+  if (!snapshot.narration) delete snapshot.narration;
+
   await writeFile(target, `${pretty(snapshot, 0)}\n`, "utf8");
 
   const electricTotal = electricSplit.reduce((sum, e) => sum + e.count, 0);
@@ -455,6 +478,12 @@ async function main() {
     `Ferrari coda: ${ferrari.total} vehicles, ` +
       `${ferrari.tractors} tractors, top model ` +
       `${ferrari.tractorsTopModel ? `${ferrari.tractorsTopModel.name} (${ferrari.tractorsTopModel.count})` : "none"}.`
+  );
+  const narrated = Object.keys(snapshot.narration?.visuals ?? {});
+  console.log(
+    snapshot.narration
+      ? `Narration: ${narrated.length} visual(s) narrated for signature ${snapshot.narration.signature.slice(0, 8)}.`
+      : "Narration: none this run."
   );
 }
 

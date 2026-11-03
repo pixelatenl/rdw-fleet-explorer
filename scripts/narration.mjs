@@ -1,0 +1,236 @@
+/*
+  Narration step of the snapshot job: one "AI insight" paragraph per
+  narrated visual, written at snapshot time by the Mistral API.
+
+  The recorded family pattern, in this module and nowhere else:
+  deterministic code computes every figure and builds the context, the
+  model only narrates that context, and the site renders the narration
+  verbatim as static text. The model never calculates: every number in
+  the returned text is validated against the context figures, and a
+  narration that introduces an unknown figure is retried once and then
+  dropped for this run. No API call happens from the client, ever; the
+  key is read from process.env.MISTRAL_API_KEY only, never logged and
+  never written anywhere.
+*/
+
+import { createHash } from "node:crypto";
+
+const MISTRAL_ENDPOINT = "https://api.mistral.ai/v1/chat/completions";
+const MISTRAL_MODEL = "mistral-small-latest";
+const TEMPERATURE = 0.2;
+const MAX_TOKENS = 150;
+/** Per-visual retry budget: one fresh attempt after a failed validation. */
+const MAX_CALLS_PER_VISUAL = 2;
+/** Hard cap of Mistral calls per run, across all visuals. */
+const MAX_CALLS_PER_RUN = 12;
+
+const SYSTEM_PROMPT = [
+  "You write the 'AI insight' caption of a public data-visualization page.",
+  "Plain English, at most two sentences.",
+  "Tell the visitor what is on the screen and the single most notable thing about it.",
+  "Use only figures that appear in the provided context; never introduce a number that is not in the context.",
+  "No markdown, no lists, no hedging (never write words like 'approximately', 'around', 'seems', or 'likely').",
+  "Output only the insight text.",
+].join(" ");
+
+const format = (value) => new Intl.NumberFormat("en-GB").format(value);
+const share = (part, whole) =>
+  whole > 0 ? `${((part / whole) * 100).toFixed(1)}%` : "0%";
+
+/*
+  Deterministic context per visual: the chart's title, one line of what
+  it shows, and the exact aggregates behind it from the snapshot, and
+  nothing else. Every figure a narration may use appears here.
+*/
+function visualContexts(snapshot) {
+  const { totals } = snapshot;
+  const electricTotal = snapshot.electricSplit.reduce(
+    (sum, entry) => sum + entry.count,
+    0,
+  );
+  const withFuel = totals.vehiclesWithFuelData;
+  const withoutFuel = totals.vehicles - withFuel;
+
+  const treemapTiles = [
+    { label: "No electric drive", count: withFuel - electricTotal },
+    ...snapshot.electricSplit,
+  ];
+
+  const fuelLines = snapshot.fuelRegistrations.map((entry, index) => {
+    const shareOfFuel = share(entry.count, totals.fuelRegistrations);
+    // The first three fuels carry the chart's story; the tail is a count.
+    return index < 3
+      ? `${entry.label}: ${format(entry.count)} registrations (${shareOfFuel} of registrations)`
+      : `${entry.label}: ${format(entry.count)} registrations`;
+  });
+
+  const typeLines = snapshot.vehicleTypes.map(
+    (entry) =>
+      `${entry.label}: ${format(entry.count)} vehicles (${share(entry.count, totals.vehicles)} of the register)`,
+  );
+
+  const cohorts = snapshot.massByYear;
+  const first = cohorts[0];
+  const last = cohorts[cohorts.length - 1];
+  const heaviest = cohorts.reduce((top, row) =>
+    row.avgMass > top.avgMass ? row : top,
+  );
+  const smallestEngine = cohorts.reduce((low, row) =>
+    row.avgEngineSize < low.avgEngineSize ? row : low,
+  );
+  const latestEngine = snapshot.engineSizeByYear.find(
+    (row) => row.year === last.year,
+  );
+  const heavyTurnLines = [
+    "Title: The heavy turn",
+    "Shows: two line charts, the average mass in kilograms and the average engine size in cubic centimetres of passenger cars by the year they were first admitted in the Netherlands.",
+    `Cohorts: ${format(cohorts.length)} first-admission-year cohorts from ${first.year} to ${last.year}, each with at least ${format(1000)} cars.`,
+    `Average mass grows from ${format(first.avgMass)} kg in ${first.year} to ${format(last.avgMass)} kg in ${last.year}; the heaviest cohort is ${heaviest.year} at ${format(heaviest.avgMass)} kg.`,
+    `Average engine size shrinks from ${format(first.avgEngineSize)} cc in ${first.year} to a low of ${format(smallestEngine.avgEngineSize)} cc in ${smallestEngine.year}, and stands at ${format(last.avgEngineSize)} cc in ${last.year}.`,
+  ];
+  if (latestEngine && latestEngine.withEngine != null) {
+    heavyTurnLines.push(
+      `The ${last.year} cohort holds ${format(last.count)} cars, of which ${format(last.count - latestEngine.withEngine)} have no engine size to measure.`,
+    );
+  }
+
+  return {
+    treemap: [
+      "Title: How electric is the Dutch fleet? (hero treemap)",
+      `Shows: a treemap of the ${format(withFuel)} vehicles with fuel data, split into drivetrain tiles sized by their share of the fleet.`,
+      `Register total: ${format(totals.vehicles)} vehicles, of which ${format(withoutFuel)} are trailers and towed equipment without fuel data.`,
+      ...treemapTiles.map(
+        (tile) =>
+          `${tile.label}: ${format(tile.count)} vehicles (${share(tile.count, withFuel)} of the fleet)`,
+      ),
+      `Total with electric drive: ${format(electricTotal)} vehicles (${share(electricTotal, withFuel)} of the fleet).`,
+    ].join("\n"),
+    fuelRegistrations: [
+      "Title: Fuel registrations",
+      "Shows: bars counting registrations per recorded fuel; hybrid vehicles carry one registration per fuel, so petrol and electric both include hybrids.",
+      `Total fuel registrations: ${format(totals.fuelRegistrations)} across ${format(withFuel)} vehicles with fuel data.`,
+      ...fuelLines,
+    ].join("\n"),
+    vehicleTypes: [
+      "Title: The register by vehicle type",
+      "Shows: bars counting every vehicle in the register by its recorded vehicle type; the fleet is far more than cars.",
+      `Register total: ${format(totals.vehicles)} vehicles.`,
+      ...typeLines,
+    ].join("\n"),
+    // The heavy turn has no context without cohorts, so it is left out
+    // and gets no narration rather than narrating an empty chart.
+    ...(cohorts.length > 0 ? { heavyTurn: heavyTurnLines.join("\n") } : {}),
+  };
+}
+
+/*
+  Figure validation. Every number in the returned text must match a
+  figure from the provided context, compared numerically so formatted
+  variants (12,212,370 and 12212370) are equal. A narration containing
+  one unknown figure is rejected in full; it is not rewritten.
+*/
+const NUMBER_PATTERN = /\d[\d,]*(?:\.\d+)?/g;
+
+export function extractNumbers(text) {
+  return [...text.matchAll(NUMBER_PATTERN)].map((match) =>
+    Number.parseFloat(match[0].replace(/,/g, "")),
+  );
+}
+
+export function validateNarration(text, context) {
+  if (!text) return false;
+  const allowed = new Set(extractNumbers(context));
+  return extractNumbers(text).every((figure) => allowed.has(figure));
+}
+
+/*
+  One Mistral chat completion. The key is used here and nowhere else;
+  failure surfaces carry the HTTP status only, never the key.
+*/
+async function callMistral(apiKey, context) {
+  const response = await fetch(MISTRAL_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: MISTRAL_MODEL,
+      temperature: TEMPERATURE,
+      max_tokens: MAX_TOKENS,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: context },
+      ],
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Mistral API failed (${response.status})`);
+  }
+  const data = await response.json();
+  return (data.choices?.[0]?.message?.content ?? "").trim();
+}
+
+/*
+  Signature gating: the data signature is a hash of the snapshot data
+  without the narration. An unchanged signature means the narrations
+  already in the file still describe the charts on screen, so they are
+  reused and no API call is made at all.
+*/
+export function dataSignature(snapshot) {
+  const { narration, ...data } = snapshot;
+  return createHash("sha256")
+    .update(JSON.stringify(data))
+    .digest("hex");
+}
+
+/**
+ * Narrates the four visuals of a fresh snapshot.
+ *
+ * @param {object} snapshot the freshly aggregated snapshot, without a
+ *   narration field yet.
+ * @param {object|null} existing the narration object of the previous
+ *   snapshot.json, or null when there is none.
+ * @param {object} [options] test seams: `apiKey` overrides the
+ *   environment, `callMistral` replaces the API call, `maxCalls`
+ *   overrides the run budget.
+ * @returns {Promise<object|null>} the narration object to store in
+ *   snapshot.json, or null when there is nothing to store.
+ */
+export async function narrate(snapshot, existing, options = {}) {
+  const apiKey = (options.apiKey ?? process.env.MISTRAL_API_KEY ?? "").trim();
+  // Fail-soft: without a key (plain push build, local run) narration is
+  // skipped entirely and any existing narrations are left untouched.
+  if (!apiKey) return existing ?? null;
+
+  const signature = dataSignature(snapshot);
+  if (existing?.signature === signature) return existing;
+
+  const contexts = visualContexts(snapshot);
+  const call = options.callMistral ?? callMistral;
+  const budget = { left: options.maxCalls ?? MAX_CALLS_PER_RUN };
+
+  const visuals = {};
+  for (const key of Object.keys(contexts)) {
+    let text = null;
+    // At most two calls per visual, never a loop, and never past the
+    // run-wide budget.
+    for (let attempt = 0; attempt < MAX_CALLS_PER_VISUAL; attempt++) {
+      if (budget.left <= 0) break;
+      budget.left -= 1;
+      try {
+        const candidate = await call(apiKey, contexts[key]);
+        if (validateNarration(candidate, contexts[key])) {
+          text = candidate;
+          break;
+        }
+      } catch {
+        // A failed call consumes the attempt; the visual is simply not
+        // narrated this run when the retry also fails.
+      }
+    }
+    if (text) visuals[key] = text;
+  }
+
+  return { signature, visuals };
+}

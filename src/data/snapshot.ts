@@ -50,6 +50,22 @@ export interface Ferrari {
   oldest: FerrariModelYear | null;
 }
 
+/**
+ * AI insight narrations, generated at snapshot time by Mistral from the
+ * same aggregates that power the charts. All fields optional: a run
+ * without the API key or a failed narration simply stores less.
+ */
+export interface Narration {
+  /** Data signature the narrations were generated from and validated against. */
+  signature: string;
+  visuals: {
+    treemap?: string;
+    fuelRegistrations?: string;
+    vehicleTypes?: string;
+    heavyTurn?: string;
+  };
+}
+
 export interface Snapshot {
   retrievedAt: string;
   source: {
@@ -72,6 +88,8 @@ export interface Snapshot {
   massByYear: HeavyTurnYear[];
   engineSizeByYear: HeavyTurnYear[];
   ferrari: Ferrari;
+  /** Absent when no narration could be generated for this snapshot. */
+  narration?: Narration;
 }
 
 export const snapshot = raw as Snapshot;
