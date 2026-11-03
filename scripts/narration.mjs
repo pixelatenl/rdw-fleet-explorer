@@ -22,7 +22,7 @@ const MAX_TOKENS = 150;
 /** Per-visual retry budget: one fresh attempt after a failed validation. */
 const MAX_CALLS_PER_VISUAL = 2;
 /** Hard cap of Mistral calls per run, across all visuals. */
-const MAX_CALLS_PER_RUN = 12;
+const MAX_CALLS_PER_RUN = 14;
 
 const SYSTEM_PROMPT = [
   "You write the 'AI insight' caption of a public data-visualization page.",
@@ -94,6 +94,47 @@ function visualContexts(snapshot) {
     );
   }
 
+  // The entry-year chart starts at 1970, mirroring its FROM_YEAR.
+  const entryRows = snapshot.registrationYears.filter(
+    (row) => row.year >= 1970,
+  );
+  const decadeCounts = new Map();
+  for (const row of entryRows) {
+    const decade = Math.floor(row.year / 10) * 10;
+    decadeCounts.set(decade, (decadeCounts.get(decade) ?? 0) + row.count);
+  }
+  const largestEntry = entryRows.reduce((top, row) =>
+    row.count > top.count ? row : top,
+  );
+  // Median entry year over the full registration-year series, sorted
+  // ascending: the first year where the cumulative count reaches half
+  // of the vehicles with a known year, as the chart caption states it.
+  const knownYearTotal = snapshot.registrationYears.reduce(
+    (sum, row) => sum + row.count,
+    0,
+  );
+  let cumulativeYears = 0;
+  let medianEntryYear = snapshot.registrationYears[0]?.year;
+  for (const row of [...snapshot.registrationYears].sort(
+    (a, b) => a.year - b.year,
+  )) {
+    cumulativeYears += row.count;
+    if (cumulativeYears * 2 >= knownYearTotal) {
+      medianEntryYear = row.year;
+      break;
+    }
+  }
+  const entryYearsLines = [
+    "Title: When today's fleet entered the Netherlands",
+    "Shows: bars counting the vehicles still registered today by the year they were first registered in the Netherlands, from 1970 onward; a bar is a survivor count, not the number registered that year, and the most recent year is a partial count.",
+    ...[...decadeCounts].map(
+      ([decade, count]) => `${decade}s: ${format(count)} vehicles`,
+    ),
+    `Largest year: ${largestEntry.year} with ${format(largestEntry.count)} vehicles.`,
+    `Half of the fleet entered in ${medianEntryYear} or later.`,
+    `${format(snapshot.registrationYearsUnknown)} vehicles have no registration year recorded.`,
+  ];
+
   return {
     treemap: [
       "Title: How electric is the Dutch fleet? (hero treemap)",
@@ -120,6 +161,8 @@ function visualContexts(snapshot) {
     // The heavy turn has no context without cohorts, so it is left out
     // and gets no narration rather than narrating an empty chart.
     ...(cohorts.length > 0 ? { heavyTurn: heavyTurnLines.join("\n") } : {}),
+    // The entry-year chart has no context without charted years.
+    ...(entryRows.length > 0 ? { entryYears: entryYearsLines.join("\n") } : {}),
   };
 }
 
@@ -173,9 +216,11 @@ async function callMistral(apiKey, context) {
 
 /*
   Signature gating: the data signature is a hash of the snapshot data
-  without the narration. An unchanged signature means the narrations
-  already in the file still describe the charts on screen, so they are
-  reused and no API call is made at all.
+  without the narration. Reuse is per visual: a narration stored under
+  the current signature already describes the chart on screen, so it is
+  kept without a call, while a visual missing from the stored set (a
+  newly added visual, or one that failed last run) is narrated anyway.
+  A complete set under an unchanged signature makes no call at all.
 */
 export function dataSignature(snapshot) {
   const { narration, ...data } = snapshot;
@@ -185,7 +230,7 @@ export function dataSignature(snapshot) {
 }
 
 /**
- * Narrates the four visuals of a fresh snapshot.
+ * Narrates the five visuals of a fresh snapshot.
  *
  * @param {object} snapshot the freshly aggregated snapshot, without a
  *   narration field yet.
@@ -204,25 +249,26 @@ export async function narrate(snapshot, existing, options = {}) {
   if (!apiKey) return existing ?? null;
 
   const signature = dataSignature(snapshot);
-  if (existing?.signature === signature) return existing;
-
   const contexts = visualContexts(snapshot);
   const call = options.callMistral ?? callMistral;
   const budget = { left: options.maxCalls ?? MAX_CALLS_PER_RUN };
+  // Narrations stored under the current signature are reused as they
+  // are; only visuals absent from the stored set are narrated.
+  const stored =
+    existing?.signature === signature ? existing?.visuals ?? {} : {};
 
   const visuals = {};
   for (const key of Object.keys(contexts)) {
-    let text = null;
+    let text = stored[key] ?? null;
     // At most two calls per visual, never a loop, and never past the
     // run-wide budget.
-    for (let attempt = 0; attempt < MAX_CALLS_PER_VISUAL; attempt++) {
+    for (let attempt = 0; !text && attempt < MAX_CALLS_PER_VISUAL; attempt++) {
       if (budget.left <= 0) break;
       budget.left -= 1;
       try {
         const candidate = await call(apiKey, contexts[key]);
         if (validateNarration(candidate, contexts[key])) {
           text = candidate;
-          break;
         }
       } catch {
         // A failed call consumes the attempt; the visual is simply not

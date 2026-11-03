@@ -231,6 +231,9 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <RegistrationYearChart />
+            {insights?.entryYears && (
+              <AiInsight text={insights.entryYears} />
+            )}
             <p className="mt-4 text-sm text-muted-foreground">
               The spike in 2021 reflects a one-off registration peak in the
               register, and {formatNumber(snapshot.registrationYearsUnknown)}{" "}

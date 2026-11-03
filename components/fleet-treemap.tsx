@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { Fuel, Zap } from "lucide-react";
 import {
@@ -187,13 +186,6 @@ function compactCountSizeClass(share: number): string {
   return "text-xl";
 }
 
-/** Neutral strip line shown when no tile is hovered or focused. */
-function defaultStripLine(): string {
-  const withFuelData = snapshot.totals.vehiclesWithFuelData;
-  const remainder = snapshot.totals.vehicles - withFuelData;
-  return `Every tile is part of ${formatNumber(withFuelData)} vehicles with fuel data. The other ${formatNumber(remainder)} vehicles in the register are trailers and towed equipment, which have no fuel data.`;
-}
-
 /**
  * The fuel cell coverage fact, derived from snapshot.fuelCellByFuel: the
  * total over all recorded fuels plus the hydrogen and petrol entries.
@@ -219,41 +211,23 @@ function fuelCellCoverageFact(): string | null {
   return `Across all ${formatNumber(fuelCellTotal)} fuel cell vehicles, ${clauses.join(" and ")} as a fuel.`;
 }
 
-/** What the strip and the tooltip need to say about one tile. */
-interface TileNarrative {
-  /** Full info strip line for this tile. */
-  strip: string;
-  /** Context sentence for the tooltip's second line, null if none. */
-  context: string | null;
-}
-
 /**
- * Per-tile narrative, derived from the snapshot at render time. Both
- * surfaces that describe a tile — the info strip and the cursor
- * tooltip — build their text here, so the two can never diverge.
+ * Context sentence for a tile's tooltip, derived from the snapshot at
+ * render time. Returns null when the tile has nothing beyond its own
+ * figures.
  */
-function tileNarrative(tile: {
+function tileContext(tile: {
   key: string;
   label: string;
   count: number;
-}): TileNarrative {
-  const withFuelData = snapshot.totals.vehiclesWithFuelData;
-  const headline = `${tile.label}: ${formatNumber(tile.count)} vehicles, ${formatPercent(tile.count / withFuelData)} of the fleet`;
+}): string | null {
   if (tile.key === "fchv") {
-    const coverage = fuelCellCoverageFact();
-    return {
-      strip: coverage ? `${headline}. ${coverage}` : `${headline}.`,
-      context: coverage,
-    };
+    return fuelCellCoverageFact();
   }
   if (tile.key === "no-electric") {
-    return { strip: `${headline}.`, context: null };
+    return null;
   }
-  const zoomTail = `${formatPercent(tile.count / electricVehicles)} of the ${formatNumber(electricVehicles)} vehicles with electric drive`;
-  return {
-    strip: `${headline} and ${zoomTail}.`,
-    context: `${zoomTail}.`,
-  };
+  return `${formatPercent(tile.count / electricVehicles)} of the ${formatNumber(electricVehicles)} vehicles with electric drive.`;
 }
 
 /**
@@ -269,10 +243,8 @@ function tileNarrative(tile: {
  * image is a plain CSS background layer.
  *
  * Hovering or keyboard-focusing a tile opens the shared cursor tooltip
- * with the tile's figures and its context sentence, and also updates
- * the always-visible info strip below the treemap (a polite live
- * region, the fallback surface for keyboard and touch); Escape clears
- * both. Each tile carries its energy icons (fuel, electric, or both)
+ * with the tile's figures and its context sentence. Each tile carries
+ * its energy icons (fuel, electric, or both)
  * in its top-left corner on wide layouts, hidden when the tile is too
  * small for them; in the below-sm stack the chip shrinks to 28px and
  * moves to the top-right, out of the text column, so the short stack
@@ -290,11 +262,6 @@ export function FleetTreemap() {
   // Starts at 1 so the server-rendered and first client render show the
   // final counts; the count-up below animates it once on first view.
   const [countProgress, setCountProgress] = useState(1);
-  // The strip follows whichever tile the pointer rests on or the keyboard
-  // focuses; focus wins so keyboard users are never overridden by hover.
-  const [hoverKey, setHoverKey] = useState<string | null>(null);
-  const [focusKey, setFocusKey] = useState<string | null>(null);
-  const activeKey = focusKey ?? hoverKey;
 
   useEffect(() => {
     const element = containerRef.current;
@@ -370,18 +337,6 @@ export function FleetTreemap() {
 
   const summary = `Fleet by drivetrain: of ${formatNumber(withFuelData)} vehicles with fuel data, ${formatNumber(noElectricCount)} (${formatPercent(noElectricCount / withFuelData)}) have no electric drive and ${formatNumber(batteryElectric)} (${formatPercent(batteryElectric / withFuelData)}) are battery electric.`;
 
-  const activeTile = tiles.find((tile) => tile.key === activeKey) ?? null;
-  const strip = activeTile
-    ? tileNarrative(activeTile).strip
-    : defaultStripLine();
-
-  function handleTileKeyDown(event: ReactKeyboardEvent) {
-    if (event.key === "Escape") {
-      setFocusKey(null);
-      setHoverKey(null);
-    }
-  }
-
   return (
     <figure>
       <figcaption className="mb-3">
@@ -412,7 +367,7 @@ export function FleetTreemap() {
       >
         {rects.map((rect) => {
           const share = rect.count / withFuelData;
-          const narrative = tileNarrative(rect);
+          const context = tileContext(rect);
           const compact = stack && !isSm;
           const stackHeight = Math.max(
             compact ? MIN_STACK_TILE_PX : MIN_STACK_TILE_SM_PX,
@@ -517,31 +472,11 @@ export function FleetTreemap() {
               label={rect.label}
               value={formatNumber(rect.count)}
               percent={formatPercent(share)}
-              value2={narrative.context ?? undefined}
+              value2={context ?? undefined}
             >
               {(trigger) => (
                 <div
                   {...trigger}
-                  onFocus={() => {
-                    trigger.onFocus();
-                    setFocusKey(rect.key);
-                  }}
-                  onBlur={() => {
-                    trigger.onBlur();
-                    setFocusKey(null);
-                  }}
-                  onMouseEnter={() => {
-                    trigger.onMouseEnter();
-                    setHoverKey(rect.key);
-                  }}
-                  onMouseLeave={() => {
-                    trigger.onMouseLeave();
-                    setHoverKey(null);
-                  }}
-                  onKeyDown={(event) => {
-                    trigger.onKeyDown(event);
-                    handleTileKeyDown(event);
-                  }}
                   className={`chart-tooltip-trigger fleet-tile overflow-hidden${
                     stack ? " relative w-full" : " absolute"
                   }`}
@@ -627,13 +562,6 @@ export function FleetTreemap() {
             </ChartTooltip>
           );
         })}
-      </div>
-      <div
-        role="status"
-        aria-live="polite"
-        className="mt-3 border-t py-2.5 text-xs text-muted-foreground"
-      >
-        {strip}
       </div>
     </figure>
   );
