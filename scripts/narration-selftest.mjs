@@ -85,8 +85,37 @@ let result = await narrate(data, existing, {
   callMistral: recorder(log, () => "Figure-free narration."),
 });
 check(
-  "unchanged signature reuses the existing narration and makes no call",
-  log.length === 0 && result === existing,
+  "unchanged signature reuses the stored narrations and only narrates missing visuals",
+  log.length === 4 &&
+    result.visuals.treemap === "Previous narration." &&
+    Object.keys(result.visuals).length === 5,
+  `calls: ${log.length}, visuals: ${Object.keys(result.visuals).length}`,
+);
+
+const complete = { signature: dataSignature(data), visuals: {} };
+for (const key of [
+  "treemap",
+  "fuelRegistrations",
+  "vehicleTypes",
+  "heavyTurn",
+  "entryYears",
+]) {
+  complete.visuals[key] = `Narration for ${key}.`;
+}
+
+log = [];
+result = await narrate(data, complete, {
+  apiKey: "test-key",
+  callMistral: recorder(log, () => "Figure-free narration."),
+});
+check(
+  "a complete set under an unchanged signature makes no call",
+  log.length === 0 &&
+    Object.keys(result.visuals).length === 5 &&
+    Object.entries(result.visuals).every(
+      ([key, text]) => text === complete.visuals[key],
+    ),
+  `calls: ${log.length}, visuals: ${Object.keys(result.visuals).length}`,
 );
 
 log = [];
@@ -114,9 +143,9 @@ result = await narrate(changed, existing, {
   callMistral: recorder(log, () => "A clean, figure-free narration."),
 });
 check(
-  "fresh signature makes one call per visual and narrates all four",
-  log.length === 4 &&
-    Object.keys(result.visuals).length === 4 &&
+  "fresh signature makes one call per visual and narrates all five",
+  log.length === 5 &&
+    Object.keys(result.visuals).length === 5 &&
     result.signature === dataSignature(changed),
   `calls: ${log.length}, visuals: ${Object.keys(result.visuals).length}`,
 );
@@ -129,7 +158,7 @@ result = await narrate(changed, existing, {
 });
 check(
   "persistent hallucination stops after two calls per visual and stores no narration",
-  log.length === 8 && Object.keys(result.visuals).length === 0,
+  log.length === 10 && Object.keys(result.visuals).length === 0,
   `calls: ${log.length}`,
 );
 check(
@@ -159,7 +188,7 @@ result = await narrate(changed, existing, {
 });
 check(
   "a hallucination retried once succeeds and still honors two calls per visual",
-  log.length === 8 && Object.keys(result.visuals).length === 4,
+  log.length === 10 && Object.keys(result.visuals).length === 5,
   `calls: ${log.length}, visuals: ${Object.keys(result.visuals).length}`,
 );
 

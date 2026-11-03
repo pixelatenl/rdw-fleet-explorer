@@ -237,6 +237,9 @@ export default function Home() {
               vehicles have no registration year recorded. Recent years
               appear brighter.
             </p>
+            {insights?.entryYears && (
+              <AiInsight text={insights.entryYears} />
+            )}
           </CardContent>
         </Card>
       </section>

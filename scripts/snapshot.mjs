@@ -446,10 +446,11 @@ async function main() {
   await mkdir(dir, { recursive: true });
   const target = path.join(dir, "snapshot.json");
 
-  // Narration step: the previous narration is reused whenever the data
-  // signature is unchanged, and without MISTRAL_API_KEY (plain push
-  // build, local run) the step is skipped entirely and any existing
-  // narrations are left untouched. A missing or failed narration
+  // Narration step: per visual, the previous narration is reused
+  // whenever the data signature is unchanged, and without
+  // MISTRAL_API_KEY (plain push build, local run) the step is skipped
+  // entirely and any existing narrations are left untouched. A missing
+  // or failed narration
   // never fails the snapshot.
   let existingNarration = null;
   try {

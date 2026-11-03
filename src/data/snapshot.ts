@@ -63,6 +63,7 @@ export interface Narration {
     fuelRegistrations?: string;
     vehicleTypes?: string;
     heavyTurn?: string;
+    entryYears?: string;
   };
 }
 
