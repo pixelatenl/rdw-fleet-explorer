@@ -9,11 +9,11 @@ import { Sparkles } from "lucide-react";
  */
 export function AiInsight({ text }: { text: string }) {
   return (
-    <div className="mt-4 flex flex-col gap-1.5">
+    <div className="mt-4 flex flex-col gap-2 rounded-xl bg-accent p-4">
       <p className="flex items-center gap-1.5 text-sm font-medium text-primary">
         <Sparkles aria-hidden="true" className="size-4 shrink-0" />
         AI insight
-        <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <span className="rounded-full bg-brand-accent/10 px-2 py-0.5 text-xs font-semibold tracking-wide text-brand-accent uppercase">
           Experimental
         </span>
       </p>
