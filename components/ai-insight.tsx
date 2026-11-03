@@ -5,11 +5,25 @@ import { Sparkles } from "lucide-react";
  * deterministic template: the narration was generated at snapshot time
  * from the chart's own aggregates and validated against its figures,
  * so it is inserted verbatim and never modified here. No narration,
- * no block.
+ * no block. Inside a card the surface recedes into the page
+ * background; `outlined` swaps that for a transparent surface with a
+ * border, for the blocks that sit on the page background itself.
  */
-export function AiInsight({ text }: { text: string }) {
+export function AiInsight({
+  text,
+  outlined = false,
+}: {
+  text: string;
+  outlined?: boolean;
+}) {
   return (
-    <div className="mt-4 flex flex-col gap-2 rounded-xl bg-background p-4">
+    <div
+      className={
+        outlined
+          ? "mt-4 flex flex-col gap-2 rounded-xl border border-border p-4"
+          : "mt-4 flex flex-col gap-2 rounded-xl bg-background p-4"
+      }
+    >
       <p className="flex items-center gap-1.5 text-sm font-medium text-primary">
         <Sparkles aria-hidden="true" className="size-4 shrink-0" />
         AI insight

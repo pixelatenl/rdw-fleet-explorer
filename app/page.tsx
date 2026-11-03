@@ -151,12 +151,12 @@ export default function Home() {
           Data received on {formatDate(snapshot.retrievedAt)}.
         </p>
 
-        <Card className="mt-8">
-          <CardContent>
-            <FleetTreemap />
-            {insights?.treemap && <AiInsight text={insights.treemap} />}
-          </CardContent>
-        </Card>
+        <div className="mt-8">
+          <FleetTreemap />
+        </div>
+        {insights?.treemap && (
+          <AiInsight text={insights.treemap} outlined />
+        )}
       </section>
 
       <section className="mb-12">
