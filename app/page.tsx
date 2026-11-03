@@ -154,7 +154,11 @@ export default function Home() {
         <div className="mt-8">
           <FleetTreemap />
         </div>
-        {insights?.treemap && <AiInsight text={insights.treemap} />}
+        {insights?.treemap && (
+          <Card className="px-6">
+            <AiInsight text={insights.treemap} />
+          </Card>
+        )}
       </section>
 
       <section className="mb-12">
