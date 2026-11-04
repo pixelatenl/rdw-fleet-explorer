@@ -31,7 +31,9 @@ export function AiInsight({
           Experimental
         </span>
       </p>
-      <p className="text-sm text-muted-foreground">{text}</p>
+      <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+        {text}
+      </p>
     </div>
   );
 }
