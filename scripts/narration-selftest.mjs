@@ -363,8 +363,13 @@ check(
 
 /* Staleness guard */
 
-// A stored heavyTurn narration that cites the 1975 average mass.
-const staleHeavyText = "The 1975 cohort averaged 1,195 kg.";
+// Fixture texts cite figures read from the loaded snapshot itself, so
+// the harness keeps passing across data refreshes: the heavyTurn text
+// cites the first cohort's average mass, the treemap text the two
+// register totals.
+const gb = (value) => value.toLocaleString("en-GB");
+const firstCohort = data.massByYear[0];
+const staleHeavyText = `The ${firstCohort.year} cohort averaged ${gb(firstCohort.avgMass)} kg.`;
 check(
   "the heavyTurn fixture cites a figure the current context carries",
   validateNarration(staleHeavyText, visualContexts(data).heavyTurn),
@@ -399,8 +404,7 @@ check(
 
 // A treemap narration citing figures that survive an electric-split
 // change: the counts it names stay in the new context.
-const keptTreemapText =
-  "The register counts 16,882,072 vehicles, of which 15,173,606 carry fuel data.";
+const keptTreemapText = `The register counts ${gb(data.totals.vehicles)} vehicles, of which ${gb(data.totals.vehiclesWithFuelData)} carry fuel data.`;
 const splitChanged = structuredClone(data);
 splitChanged.electricSplit[0].count += 1;
 check(
