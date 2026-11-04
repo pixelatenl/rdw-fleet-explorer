@@ -101,6 +101,56 @@ check(
 );
 check("validation rejects empty text", !validateNarration("", context));
 
+/* Prose-ratio lint */
+
+const fuelContext =
+  "Petrol: 9,477,781 vehicles (62.5% of vehicles with fuel data). Diesel: 2,577,327 vehicles (17.0% of vehicles with fuel data). Total: 15,173,606 vehicles with fuel data.";
+
+check(
+  "validation rejects 'one in twelve' even when every other figure is present",
+  !validateNarration(
+    "Petrol covers 62.5% of the 15,173,606 vehicles with fuel data, but one in twelve uses diesel.",
+    fuelContext,
+  ),
+);
+check(
+  "the same text with '17.0%' in place of the ratio passes",
+  validateNarration(
+    "Petrol covers 62.5% of the 15,173,606 vehicles with fuel data, while diesel stands at 17.0%.",
+    fuelContext,
+  ),
+);
+const ratioPhrases = [
+  "one in twelve",
+  "two in five",
+  "three in ten",
+  "four in ten",
+  "five in ten",
+  "six in ten",
+  "seven in ten",
+  "eight in ten",
+  "nine in ten",
+  "ten in ten",
+  "one in a hundred",
+  "six out of ten",
+  "three out of every ten",
+  "half of all vehicles",
+];
+check(
+  "every prose-ratio pattern fails validation on its own, with no figure to catch it",
+  ratioPhrases.every(
+    (phrase) => !validateNarration(`The share is ${phrase}.`, fuelContext),
+  ),
+);
+check(
+  "the prose-ratio lint is case-insensitive",
+  !validateNarration("SIX OUT OF TEN vehicles run on petrol.", fuelContext),
+);
+check(
+  "a percentage with a numeral remains the sanctioned form",
+  validateNarration("Diesel stands at 17.0% of vehicles with fuel data.", fuelContext),
+);
+
 /* Per-visual signature gating */
 
 // A set stored under the current contexts, minus one visual that
@@ -173,6 +223,68 @@ check(
   log.length === 0 && result === null,
 );
 
+/* Guidance-line gating: the numerals-only guidance is part of every
+   context, so a change to that line alone moves all five signatures. */
+
+const contexts = visualContexts(data);
+const withoutNumeralsGuidance = (context) =>
+  context
+    .split("\n")
+    .filter((line) => !line.includes("prose ratios"))
+    .join("\n");
+
+check(
+  "every visual context carries the numerals-only guidance line",
+  KEYS.every((key) =>
+    contexts[key]
+      .split("\n")
+      .some(
+        (line) => line.includes("prose ratios") && line.includes("17.0%"),
+      ),
+  ),
+);
+check(
+  "a guidance-line-only change moves all five signatures",
+  KEYS.every(
+    (key) =>
+      visualSignature(contexts[key]) !==
+      visualSignature(withoutNumeralsGuidance(contexts[key])),
+  ),
+);
+
+// A stored set whose signatures were computed without the guidance
+// line: the contexts differ by that line alone.
+const guidanceOnlyChanged = { visuals: {}, signatures: {} };
+for (const key of KEYS) {
+  guidanceOnlyChanged.visuals[key] = `Narration for ${key}.`;
+  guidanceOnlyChanged.signatures[key] = visualSignature(
+    withoutNumeralsGuidance(contexts[key]),
+  );
+}
+
+log = [];
+result = await narrate(data, guidanceOnlyChanged, {
+  apiKey: "test-key",
+  callMistral: recorder(log, () => "Figure-free narration."),
+});
+check(
+  "a guidance-line-only change regenerates all five narrations",
+  log.length === 5 && Object.keys(result.visuals).length === 5,
+  `calls: ${log.length}, visuals: ${Object.keys(result.visuals).length}`,
+);
+
+log = [];
+const afterRegeneration = await narrate(data, result, {
+  apiKey: "test-key",
+  callMistral: recorder(log, () => "Never reached."),
+});
+check(
+  "the regenerated set is reused with zero calls on unchanged data",
+  log.length === 0 &&
+    KEYS.every((key) => afterRegeneration.visuals[key] === result.visuals[key]),
+  `calls: ${log.length}`,
+);
+
 /* Fresh generation, retry, budget */
 
 log = [];
@@ -205,6 +317,27 @@ check(
 log = [];
 result = await narrate(data, null, {
   apiKey: "test-key",
+  // A prose ratio carries no numerals, so only the lint can reject it:
+  // fleetByFuel fails both attempts and is hidden, the rest narrate.
+  callMistral: async (_apiKey, callContext) => {
+    log.push(callContext);
+    return callContext.includes("Title: The fleet by fuel")
+      ? "Six out of ten vehicles with fuel data run on petrol, and one in twelve uses diesel."
+      : "A clean, figure-free narration.";
+  },
+});
+check(
+  "a prose-ratio narration is rejected, retried once, and hidden when the retry also fails",
+  log.length === 6 &&
+    !("fleetByFuel" in result.visuals) &&
+    !("fleetByFuel" in result.signatures) &&
+    Object.keys(result.visuals).length === 4,
+  `calls: ${log.length}, visuals: ${Object.keys(result.visuals).length}`,
+);
+
+log = [];
+result = await narrate(data, null, {
+  apiKey: "test-key",
   maxCalls: 3,
   callMistral: recorder(log, () => "A clean, figure-free narration."),
 });
@@ -230,8 +363,13 @@ check(
 
 /* Staleness guard */
 
-// A stored heavyTurn narration that cites the 1975 average mass.
-const staleHeavyText = "The 1975 cohort averaged 1,195 kg.";
+// Fixture texts cite figures read from the loaded snapshot itself, so
+// the harness keeps passing across data refreshes: the heavyTurn text
+// cites the first cohort's average mass, the treemap text the two
+// register totals.
+const gb = (value) => value.toLocaleString("en-GB");
+const firstCohort = data.massByYear[0];
+const staleHeavyText = `The ${firstCohort.year} cohort averaged ${gb(firstCohort.avgMass)} kg.`;
 check(
   "the heavyTurn fixture cites a figure the current context carries",
   validateNarration(staleHeavyText, visualContexts(data).heavyTurn),
@@ -266,8 +404,7 @@ check(
 
 // A treemap narration citing figures that survive an electric-split
 // change: the counts it names stay in the new context.
-const keptTreemapText =
-  "The register counts 16,882,072 vehicles, of which 15,173,606 carry fuel data.";
+const keptTreemapText = `The register counts ${gb(data.totals.vehicles)} vehicles, of which ${gb(data.totals.vehiclesWithFuelData)} carry fuel data.`;
 const splitChanged = structuredClone(data);
 splitChanged.electricSplit[0].count += 1;
 check(

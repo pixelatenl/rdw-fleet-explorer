@@ -7,10 +7,11 @@
   model only narrates that context, and the site renders the narration
   verbatim as static text. The model never calculates: every number in
   the returned text is validated against the context figures, and a
-  narration that introduces an unknown figure is retried once and then
-  dropped for this run. No API call happens from the client, ever; the
-  key is read from process.env.MISTRAL_API_KEY only, never logged and
-  never written anywhere.
+  prose-ratio phrasing ("one in twelve") fails the same validation, so
+  a narration that introduces an unknown figure or a prose ratio is
+  retried once and then dropped for this run. No API call happens from
+  the client, ever; the key is read from process.env.MISTRAL_API_KEY
+  only, never logged and never written anywhere.
 */
 
 import { createHash } from "node:crypto";
@@ -29,6 +30,7 @@ const SYSTEM_PROMPT = [
   "Plain English, at most two sentences.",
   "Tell the visitor what is on the screen and the single most notable thing about it.",
   "Use only figures that appear in the provided context; never introduce a number that is not in the context.",
+  "State every share and comparison as a percentage with a numeral taken from the context (for example '17.0%'); never as a prose ratio.",
   "No markdown, no lists, no hedging (never write words like 'approximately', 'around', 'seems', or 'likely').",
   "Output only the insight text.",
 ].join(" ");
@@ -36,6 +38,17 @@ const SYSTEM_PROMPT = [
 const format = (value) => new Intl.NumberFormat("en-GB").format(value);
 const share = (part, whole) =>
   whole > 0 ? `${((part / whole) * 100).toFixed(1)}%` : "0%";
+
+/*
+  One guidance line shared by every visual context: shares and
+  comparisons are stated as percentages with numerals taken from the
+  context figures, never as prose ratios. The line sits with the other
+  instructions, before the figures, and because it is part of each
+  context it moves every visual's signature; the prose-ratio lint in
+  validateNarration enforces it on the returned text.
+*/
+const NUMERALS_GUIDANCE =
+  "Guidance: state every share and comparison as a percentage with a numeral taken from the context figures (for example '17.0%'); prose ratios such as 'one in twelve', 'six out of ten', or 'two in five' are not permitted.";
 
 /*
   Deterministic context per visual: the chart's title, one line of what
@@ -85,6 +98,7 @@ export function visualContexts(snapshot) {
     "Shows: two line charts, the average mass in kilograms and the average engine size in cubic centimetres of passenger cars by the year they were first registered in the Netherlands.",
     `Cohorts: ${format(cohorts.length)} first-registration-year cohorts from ${first.year} to ${last.year}, each with at least ${format(1000)} cars.`,
     "Population: the most recent cohort is a partial year. Average mass covers all passenger cars, electric ones included. Engine size covers only the cars that have an engine, because electric vehicles have no cylinder capacity.",
+    NUMERALS_GUIDANCE,
     `Average mass grows from ${format(first.avgMass)} kg in ${first.year} to ${format(last.avgMass)} kg in ${last.year}; the heaviest cohort is ${heaviest.year} at ${format(heaviest.avgMass)} kg.`,
     `Average engine size shrinks from ${format(first.avgEngineSize)} cc in ${first.year} to a low of ${format(smallestEngine.avgEngineSize)} cc in ${smallestEngine.year}, and stands at ${format(last.avgEngineSize)} cc in ${last.year}.`,
   ];
@@ -129,6 +143,7 @@ export function visualContexts(snapshot) {
     "Title: When today's fleet entered the Netherlands",
     "Shows: bars counting the vehicles still registered today by the year they were first registered in the Netherlands, from 1970 onward; a bar is a survivor count, not the number registered that year, and the most recent year is a partial count.",
     `Population: the years are years of first registration in the Netherlands, and the chart covers the ${format(entryTotal)} vehicles first registered in 1970 or later.`,
+    NUMERALS_GUIDANCE,
     ...[...decadeCounts].map(
       ([decade, count]) => `${decade}s: ${format(count)} vehicles`,
     ),
@@ -142,6 +157,7 @@ export function visualContexts(snapshot) {
       "Title: How electric is the Dutch fleet? (hero treemap)",
       `Shows: a treemap of the ${format(withFuel)} vehicles with fuel data, split into drivetrain tiles sized by their share of the vehicles with fuel data.`,
       `Population: every share on this chart is a share of the ${format(withFuel)} vehicles with fuel data; for contrast, the full register counts ${format(totals.vehicles)} vehicles, of which ${format(withoutFuel)} are trailers and towed equipment without fuel data.`,
+      NUMERALS_GUIDANCE,
       ...treemapTiles.map(
         (tile) =>
           `${tile.label}: ${format(tile.count)} vehicles (${share(tile.count, withFuel)} of vehicles with fuel data)`,
@@ -154,6 +170,8 @@ export function visualContexts(snapshot) {
       "Shows: bars counting the vehicles with fuel data by fuel, every vehicle in exactly one category; the other category holds fuel cell hybrids, hydrogen, CNG, alcohol, and LNG vehicles, plus a small residue of incomplete records.",
       `Population: the chart covers the ${format(withFuel)} vehicles with fuel data, and every share is a share of those vehicles. As register background only: the raw fuel register holds one registration per fuel, ${format(totals.fuelRegistrations)} records covering the ${format(withFuel)} vehicles.`,
       "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'. A hybrid is a hybrid: it is counted once, never also as petrol or diesel.",
+      "Guidance: name the two largest categories, each with its percentage from the figures below.",
+      NUMERALS_GUIDANCE,
       ...fleetByFuelLines,
       `Total: ${format(withFuel)} vehicles with fuel data.`,
     ].join("\n"),
@@ -161,6 +179,7 @@ export function visualContexts(snapshot) {
       "Title: The register by vehicle type",
       "Shows: bars counting every vehicle in the register by its recorded vehicle type; the fleet is far more than cars.",
       `Population: every share on this chart is a share of the full register of ${format(totals.vehicles)} vehicles, which spans every vehicle type, mopeds, trailers, tractors and vans included.`,
+      NUMERALS_GUIDANCE,
       `Register total: ${format(totals.vehicles)} vehicles.`,
       ...typeLines,
     ].join("\n"),
@@ -186,8 +205,21 @@ export function extractNumbers(text) {
   );
 }
 
+/*
+  Prose-ratio lint. A share phrased as a prose ratio ("one in twelve",
+  "six out of ten", "half of all") carries no numerals, so the figure
+  check below cannot see it and could not reject it. Any of these
+  patterns, case-insensitive, fails validation and the narration is
+  treated like one with a hallucinated number: one retry, then the
+  block is hidden. Percentages with numerals ("17.0%") remain the
+  sanctioned form.
+*/
+const PROSE_RATIO_PATTERN =
+  /\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+in\b|\bin\s+a\s+hundred\b|\bout\s+of\s+ten\b|\bout\s+of\s+every\b|\bhalf\s+of\s+all\b/i;
+
 export function validateNarration(text, context) {
   if (!text) return false;
+  if (PROSE_RATIO_PATTERN.test(text)) return false;
   const allowed = new Set(extractNumbers(context));
   return extractNumbers(text).every((figure) => allowed.has(figure));
 }
