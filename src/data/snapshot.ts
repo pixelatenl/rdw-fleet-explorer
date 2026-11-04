@@ -56,8 +56,16 @@ export interface Ferrari {
  * without the API key or a failed narration simply stores less.
  */
 export interface Narration {
-  /** Data signature the narrations were generated from and validated against. */
-  signature: string;
+  /** SHA-256 of each visual's narration context: the exact aggregates
+   *  the stored text was generated from and validated against. A
+   *  visual is re-narrated only when its context hash changes. */
+  signatures?: {
+    treemap?: string;
+    fuelRegistrations?: string;
+    vehicleTypes?: string;
+    heavyTurn?: string;
+    entryYears?: string;
+  };
   visuals: {
     treemap?: string;
     fuelRegistrations?: string;

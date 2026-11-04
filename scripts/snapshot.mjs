@@ -447,7 +447,7 @@ async function main() {
   const target = path.join(dir, "snapshot.json");
 
   // Narration step: per visual, the previous narration is reused
-  // whenever the data signature is unchanged, and without
+  // whenever that visual's context signature is unchanged, and without
   // MISTRAL_API_KEY (plain push build, local run) the step is skipped
   // entirely and any existing narrations are left untouched. A missing
   // or failed narration
@@ -483,7 +483,7 @@ async function main() {
   const narrated = Object.keys(snapshot.narration?.visuals ?? {});
   console.log(
     snapshot.narration
-      ? `Narration: ${narrated.length} visual(s) narrated for signature ${snapshot.narration.signature.slice(0, 8)}.`
+      ? `Narration: ${narrated.length} visual(s) with an insight, each under its own context signature.`
       : "Narration: none this run."
   );
 }

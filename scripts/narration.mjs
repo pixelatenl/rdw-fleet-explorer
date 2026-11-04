@@ -39,10 +39,12 @@ const share = (part, whole) =>
 
 /*
   Deterministic context per visual: the chart's title, one line of what
-  it shows, and the exact aggregates behind it from the snapshot, and
-  nothing else. Every figure a narration may use appears here.
+  it shows, the population the chart counts (phrased the way the page
+  itself phrases it, so the model cannot blur the bases), and the exact
+  aggregates behind it from the snapshot, and nothing else. Every
+  figure a narration may use appears here.
 */
-function visualContexts(snapshot) {
+export function visualContexts(snapshot) {
   const { totals } = snapshot;
   const electricTotal = snapshot.electricSplit.reduce(
     (sum, entry) => sum + entry.count,
@@ -83,8 +85,9 @@ function visualContexts(snapshot) {
   );
   const heavyTurnLines = [
     "Title: The heavy turn",
-    "Shows: two line charts, the average mass in kilograms and the average engine size in cubic centimetres of passenger cars by the year they were first admitted in the Netherlands.",
-    `Cohorts: ${format(cohorts.length)} first-admission-year cohorts from ${first.year} to ${last.year}, each with at least ${format(1000)} cars.`,
+    "Shows: two line charts, the average mass in kilograms and the average engine size in cubic centimetres of passenger cars by the year they were first registered in the Netherlands.",
+    `Cohorts: ${format(cohorts.length)} first-registration-year cohorts from ${first.year} to ${last.year}, each with at least ${format(1000)} cars.`,
+    "Population: the most recent cohort is a partial year. Average mass covers all passenger cars, electric ones included. Engine size covers only the cars that have an engine, because electric vehicles have no cylinder capacity.",
     `Average mass grows from ${format(first.avgMass)} kg in ${first.year} to ${format(last.avgMass)} kg in ${last.year}; the heaviest cohort is ${heaviest.year} at ${format(heaviest.avgMass)} kg.`,
     `Average engine size shrinks from ${format(first.avgEngineSize)} cc in ${first.year} to a low of ${format(smallestEngine.avgEngineSize)} cc in ${smallestEngine.year}, and stands at ${format(last.avgEngineSize)} cc in ${last.year}.`,
   ];
@@ -98,6 +101,7 @@ function visualContexts(snapshot) {
   const entryRows = snapshot.registrationYears.filter(
     (row) => row.year >= 1970,
   );
+  const entryTotal = entryRows.reduce((sum, row) => sum + row.count, 0);
   const decadeCounts = new Map();
   for (const row of entryRows) {
     const decade = Math.floor(row.year / 10) * 10;
@@ -127,6 +131,7 @@ function visualContexts(snapshot) {
   const entryYearsLines = [
     "Title: When today's fleet entered the Netherlands",
     "Shows: bars counting the vehicles still registered today by the year they were first registered in the Netherlands, from 1970 onward; a bar is a survivor count, not the number registered that year, and the most recent year is a partial count.",
+    `Population: the years are years of first registration in the Netherlands, and the chart covers the ${format(entryTotal)} vehicles first registered in 1970 or later.`,
     ...[...decadeCounts].map(
       ([decade, count]) => `${decade}s: ${format(count)} vehicles`,
     ),
@@ -138,23 +143,26 @@ function visualContexts(snapshot) {
   return {
     treemap: [
       "Title: How electric is the Dutch fleet? (hero treemap)",
-      `Shows: a treemap of the ${format(withFuel)} vehicles with fuel data, split into drivetrain tiles sized by their share of the fleet.`,
-      `Register total: ${format(totals.vehicles)} vehicles, of which ${format(withoutFuel)} are trailers and towed equipment without fuel data.`,
+      `Shows: a treemap of the ${format(withFuel)} vehicles with fuel data, split into drivetrain tiles sized by their share of the vehicles with fuel data.`,
+      `Population: every share on this chart is a share of the ${format(withFuel)} vehicles with fuel data; for contrast, the full register counts ${format(totals.vehicles)} vehicles, of which ${format(withoutFuel)} are trailers and towed equipment without fuel data.`,
       ...treemapTiles.map(
         (tile) =>
-          `${tile.label}: ${format(tile.count)} vehicles (${share(tile.count, withFuel)} of the fleet)`,
+          `${tile.label}: ${format(tile.count)} vehicles (${share(tile.count, withFuel)} of vehicles with fuel data)`,
       ),
-      `Total with electric drive: ${format(electricTotal)} vehicles (${share(electricTotal, withFuel)} of the fleet).`,
+      `Total with electric drive: ${format(electricTotal)} vehicles (${share(electricTotal, withFuel)} of vehicles with fuel data).`,
+      "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'.",
     ].join("\n"),
     fuelRegistrations: [
       "Title: Fuel registrations",
-      "Shows: bars counting registrations per recorded fuel; hybrid vehicles carry one registration per fuel, so petrol and electric both include hybrids.",
+      "Shows: bars counting registrations per recorded fuel; hybrid vehicles carry one registration per fuel, so the registration total exceeds the vehicle count. The electric bar counts vehicles, the only fuel that is never double counted.",
       `Total fuel registrations: ${format(totals.fuelRegistrations)} across ${format(withFuel)} vehicles with fuel data.`,
+      "Guidance: when the insight mentions the registration total, it must also note that hybrids carry one registration per fuel, which is why the total exceeds the vehicle count.",
       ...fuelLines,
     ].join("\n"),
     vehicleTypes: [
       "Title: The register by vehicle type",
       "Shows: bars counting every vehicle in the register by its recorded vehicle type; the fleet is far more than cars.",
+      `Population: every share on this chart is a share of the full register of ${format(totals.vehicles)} vehicles, which spans every vehicle type, mopeds, trailers, tractors and vans included.`,
       `Register total: ${format(totals.vehicles)} vehicles.`,
       ...typeLines,
     ].join("\n"),
@@ -215,18 +223,17 @@ async function callMistral(apiKey, context) {
 }
 
 /*
-  Signature gating: the data signature is a hash of the snapshot data
-  without the narration. Reuse is per visual: a narration stored under
-  the current signature already describes the chart on screen, so it is
-  kept without a call, while a visual missing from the stored set (a
-  newly added visual, or one that failed last run) is narrated anyway.
-  A complete set under an unchanged signature makes no call at all.
+  Signature gating, per visual: a visual's signature is the SHA-256 of
+  its own context, and the context embeds that visual's exact
+  aggregates, so every data change flows into the hash. Reuse is per
+  visual: a narration stored under the visual's current signature
+  already describes the chart on screen, so it is kept without a call,
+  while a visual whose signature changed (or that is missing from the
+  stored set: newly added, or failed last run) is narrated again. A
+  complete set under unchanged contexts makes no call at all.
 */
-export function dataSignature(snapshot) {
-  const { narration, ...data } = snapshot;
-  return createHash("sha256")
-    .update(JSON.stringify(data))
-    .digest("hex");
+export function visualSignature(context) {
+  return createHash("sha256").update(context).digest("hex");
 }
 
 /**
@@ -240,7 +247,8 @@ export function dataSignature(snapshot) {
  *   environment, `callMistral` replaces the API call, `maxCalls`
  *   overrides the run budget.
  * @returns {Promise<object|null>} the narration object to store in
- *   snapshot.json, or null when there is nothing to store.
+ *   snapshot.json (the insight text per visual, each under its own
+ *   context signature), or null when there is nothing to store.
  */
 export async function narrate(snapshot, existing, options = {}) {
   const apiKey = (options.apiKey ?? process.env.MISTRAL_API_KEY ?? "").trim();
@@ -248,18 +256,21 @@ export async function narrate(snapshot, existing, options = {}) {
   // skipped entirely and any existing narrations are left untouched.
   if (!apiKey) return existing ?? null;
 
-  const signature = dataSignature(snapshot);
   const contexts = visualContexts(snapshot);
   const call = options.callMistral ?? callMistral;
   const budget = { left: options.maxCalls ?? MAX_CALLS_PER_RUN };
-  // Narrations stored under the current signature are reused as they
-  // are; only visuals absent from the stored set are narrated.
-  const stored =
-    existing?.signature === signature ? existing?.visuals ?? {} : {};
+  // Narrations stored under a visual's current signature are reused as
+  // they are; only visuals with a changed or missing signature are
+  // narrated.
+  const storedVisuals = existing?.visuals ?? {};
+  const storedSignatures = existing?.signatures ?? {};
 
   const visuals = {};
+  const signatures = {};
   for (const key of Object.keys(contexts)) {
-    let text = stored[key] ?? null;
+    const signature = visualSignature(contexts[key]);
+    let text =
+      storedSignatures[key] === signature ? storedVisuals[key] ?? null : null;
     // At most two calls per visual, never a loop, and never past the
     // run-wide budget.
     for (let attempt = 0; !text && attempt < MAX_CALLS_PER_VISUAL; attempt++) {
@@ -275,8 +286,24 @@ export async function narrate(snapshot, existing, options = {}) {
         // narrated this run when the retry also fails.
       }
     }
-    if (text) visuals[key] = text;
+    if (!text) {
+      // Staleness guard: when no narration could be generated for the
+      // new context, the previous text is not kept blindly. It is
+      // revalidated against the new context's figures with the same
+      // numeric comparison used at generation time, and kept only if
+      // every figure it cites is still present. Otherwise the visual
+      // gets no narration this run: an insight block must never sit
+      // beside a chart whose aggregates no longer match its figures.
+      const previous = storedVisuals[key] ?? null;
+      if (previous && validateNarration(previous, contexts[key])) {
+        text = previous;
+      }
+    }
+    if (text) {
+      visuals[key] = text;
+      signatures[key] = signature;
+    }
   }
 
-  return { signature, visuals };
+  return { visuals, signatures };
 }
