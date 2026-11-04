@@ -291,14 +291,14 @@
   },
   "narration": {
     "visuals": {
-      "treemap": "The treemap shows 15,175,498 vehicles with fuel data split by drivetrain, where 19.5% have some form of electric drive. Battery electric vehicles alone make up 8.2% of vehicles with fuel data.",
+      "treemap": "80.5% of vehicles with fuel data have no electric drive, while 19.5% have some form of electric drive.",
       "fleetByFuel": "The chart shows the 15,175,498 vehicles with fuel data, broken down by fuel type; petrol vehicles make up 62.5% and diesel 17.0%, the two largest categories.",
       "vehicleTypes": "This chart shows the count of every vehicle in the register by its type, with passenger cars making up 64.1% of the total 16,884,127 vehicles. The next largest group, vans, account for just 8.9% of the fleet.",
       "heavyTurn": "The chart shows two lines: one for average car mass rising from 1,195 kg in 1975 to 1,669 kg in 2026, and another for average engine size falling from 2,673 cc in 1975 to 1,406 cc in 2018 before rising to 1,613 cc in 2026. The most notable trend is cars getting heavier while engines shrink and then partially rebound.",
       "entryYears": "Half of today’s Dutch fleet first entered the country in 2017 or later, with 6,658,184 vehicles from the 2020s and 6,097,730 from the 2010s. The single biggest cohort is 2021, showing 1,424,630 survivors."
     },
     "signatures": {
-      "treemap": "64f30a7590cf32c691b1ba2142c96a5354612458cde74eedfff6be4925cdb408",
+      "treemap": "bf2d679ce11fd75067a1e77268cdae192dd0801d51acb366da6400595a30902b",
       "fleetByFuel": "c0a68dd67edc299048e90159faf16da4823cbb5609c4331f0f6778370d3052d1",
       "vehicleTypes": "9c6d3787ec47d8a84f7514fd88709e9dd7daf058e82212a368a55738a8a6614a",
       "heavyTurn": "7296293b3e1e5f862b03de20656af05199f69a1da9c1e8e3d7ff53948b47c881",
