@@ -335,7 +335,7 @@ export default function Home() {
             >
               A completely unrelated reward
             </p>
-            <h2 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            <h2 className="max-w-4xl text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
               The Netherlands has{" "}
               <span className="text-brand-accent">
                 {formatNumber(ferrari.total)}
