@@ -61,9 +61,13 @@ const COUNT_TIER_LINE_PX: Record<string, number> = {
   "text-3xl": 36,
   "text-2xl": 32,
 };
-/** Rough tabular-digit width of a count at black weight, in em:
- *  digits wide, dots narrow. */
-const COUNT_DIGIT_EM = 0.64;
+/**
+ * Rough tabular-digit width of a count at black weight with the
+ *  tighter (-0.05em) tracking subtracted, in em: digits wide, dots
+ *  narrow. The letter spacing only narrows the numbers, so the
+ *  measure absorbs it and fitted counts earn a few pixels back.
+ */
+const COUNT_DIGIT_EM = 0.6;
 const COUNT_SEPARATOR_EM = 0.36;
 /** Per-side horizontal room a fitted count keeps inside its tile. */
 const COUNT_INSET_PX = 8;
@@ -593,7 +597,7 @@ export function FleetTreemap() {
                       </p>
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                         <p
-                          className={`font-black tracking-tight tabular-nums ${tierClass}`}
+                          className={`font-black tracking-tighter tabular-nums ${tierClass}`}
                           style={countStyle}
                         >
                           {formatNumber(
