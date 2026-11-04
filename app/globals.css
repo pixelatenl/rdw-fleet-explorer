@@ -153,7 +153,8 @@
   dark theme's fills are all bright hues, so every tile flips to the
   dark ink there, while the light theme keeps the dark foreground ink
   except on the two darker hues (full hybrid violet, fuel cell rose),
-  which take white.
+  which take white. The focus treatment further below decides which
+  of these states each tile rests in.
 */
 :root {
   --fleet-tile-no-electric: #73b9c6;
@@ -300,21 +301,104 @@
 
 /*
   Fleet treemap depth and motion. Tiles lift on hover and keyboard
-  focus, dropping a soft shadow beneath them. The photo layer reads as
-  duotone texture: grayscale, luminosity blended into the token base
-  fill. Everything is disabled under prefers-reduced-motion.
+  focus, dropping a soft shadow beneath them, and the focus treatment
+  below reveals the categorical palette over the same 200ms. The
+  photo layer reads as duotone texture: grayscale, luminosity blended
+  into the token base fill. Everything is disabled under
+  prefers-reduced-motion.
 */
 .fleet-tile {
   border-radius: 12px;
   transition:
     transform 200ms ease-out,
-    box-shadow 200ms ease-out;
+    box-shadow 200ms ease-out,
+    --fleet-tile-fill 200ms ease-out,
+    --fleet-tile-ink 200ms ease-out,
+    --fleet-chip 200ms ease-out,
+    --fleet-icon 200ms ease-out;
 }
 
 .fleet-tile:hover,
 .fleet-tile:focus-visible {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.35);
+}
+
+/*
+  Fleet treemap focus treatment. At rest the composition has one
+  focal point: battery electric is electric, everything else —
+  hybrids included — runs on fuel. So every tile but battery
+  electric rests in the neutral no-electric treatment, and battery
+  electric alone keeps its full orange. On hover-capable devices
+  the categorical hue is a reveal: the fill, ink, chip scrim and icon
+  shade of a hovered or keyboard-focused tile transition to the
+  tile's categorical token set and back on unhover; the battery
+  electric tile never changes, it is already at full accent.
+  Devices without hover have no reveal interaction, so there every
+  tile keeps the full categorical palette at all times. The state
+  tokens below are registered with @property so the fill, the
+  readability gradient (a color-mix of the fill) and every derived
+  ink interpolate with the transition instead of snapping; browsers
+  without @property support still get the same state changes with a
+  discrete flip. The rest state reuses the neutral tokens the
+  no-electric tile already carries, so text, pills and icons keep
+  their audited contrast in both states and both themes.
+*/
+@property --fleet-tile-fill {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --fleet-tile-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --fleet-chip {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --fleet-icon {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+.fleet-tile {
+  --fleet-tile-fill: var(--fleet-tile-category);
+  --fleet-tile-ink: var(--fleet-ink-category);
+  --fleet-chip: var(--fleet-chip-category);
+  --fleet-icon: var(--fleet-icon-category);
+}
+
+@media (hover: hover) {
+  .fleet-tile:not(.fleet-tile-focus) {
+    --fleet-tile-fill: var(--fleet-tile-no-electric);
+    --fleet-tile-ink: var(--fleet-ink-no-electric);
+    --fleet-chip: var(--fleet-chip-no-electric);
+    --fleet-icon: var(--fleet-icon-no-electric);
+  }
+
+  .fleet-tile:not(.fleet-tile-focus):hover,
+  .fleet-tile:not(.fleet-tile-focus):focus-visible {
+    --fleet-tile-fill: var(--fleet-tile-category);
+    --fleet-tile-ink: var(--fleet-ink-category);
+    --fleet-chip: var(--fleet-chip-category);
+    --fleet-icon: var(--fleet-icon-category);
+  }
+}
+
+.fleet-tile-fill {
+  background-color: var(--fleet-tile-fill);
+}
+
+.fleet-tile-readability {
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--fleet-tile-fill) 90%, transparent),
+    transparent
+  );
 }
 
 /*

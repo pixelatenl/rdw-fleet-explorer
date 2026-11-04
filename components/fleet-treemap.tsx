@@ -86,11 +86,16 @@ const COUNT_UP_MS = 2000;
 type IconName = "fuel" | "zap";
 
 interface FleetTile extends TreemapInputItem {
-  /** Per-key text color token, chosen for contrast on the tile fill. */
+  /**
+   * Per-key categorical text ink, chip scrim and icon shade, each
+   * chosen for contrast on the categorical fill above. On
+   * hover-capable devices the fill is a hover/focus reveal — at rest
+   * every tile but battery electric takes the neutral no-electric
+   * treatment instead, per the focus treatment in app/globals.css —
+   * while hover-less devices keep the categorical set at all times.
+   */
   inkToken: string;
-  /** Per-key translucent chip scrim token, the inverse of the ink. */
   chipToken: string;
-  /** Per-key icon color token: the tile hue, shaded for contrast. */
   iconToken: string;
   /** Per-tile photo treatment overrides, when the default reads washed out. */
   photoOpacityToken?: string;
@@ -243,8 +248,15 @@ function tileContext(tile: {
  * image is a plain CSS background layer.
  *
  * Hovering or keyboard-focusing a tile opens the shared cursor tooltip
- * with the tile's figures and its context sentence. Each tile carries
- * its energy icons (fuel, electric, or both)
+ * with the tile's figures and its context sentence. At rest the
+ * composition has one focal point: battery electric is electric and
+ * everything else — hybrids included — runs on fuel, so on
+ * hover-capable devices every tile but battery electric rests in the
+ * neutral no-electric treatment and reveals its categorical hue on
+ * hover or keyboard focus, while hover-less devices keep the full
+ * categorical palette. The focus treatment lives in app/globals.css,
+ * pure CSS media queries with no JavaScript device detection. Each
+ * tile carries its energy icons (fuel, electric, or both)
  * in its top-left corner on wide layouts, hidden when the tile is too
  * small for them; in the below-sm stack the chip shrinks to 28px and
  * moves to the top-right, out of the text column, so the short stack
@@ -456,9 +468,13 @@ export function FleetTreemap() {
 
           const tileStyle = {
             ...positionStyle,
-            "--fleet-tile-ink": rect.inkToken,
-            "--fleet-chip": rect.chipToken,
-            "--fleet-icon": rect.iconToken,
+            // Per-key categorical tokens; the focus treatment in
+            // app/globals.css resolves the live fill, ink, chip and
+            // icon per state (neutral at rest, categorical on hover).
+            "--fleet-tile-category": rect.colorToken,
+            "--fleet-ink-category": rect.inkToken,
+            "--fleet-chip-category": rect.chipToken,
+            "--fleet-icon-category": rect.iconToken,
             ...(rect.photoOpacityToken
               ? { "--fleet-photo-opacity": rect.photoOpacityToken }
               : {}),
@@ -479,14 +495,15 @@ export function FleetTreemap() {
                 <div
                   {...trigger}
                   className={`chart-tooltip-trigger fleet-tile overflow-hidden${
-                    stack ? " relative w-full" : " absolute"
-                  }`}
+                    // Battery electric is the focal point: it never
+                    // drops to the neutral rest treatment.
+                    rect.key === "bev" ? " fleet-tile-focus" : ""
+                  }${stack ? " relative w-full" : " absolute"}`}
                   style={tileStyle}
                 >
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0"
-                    style={{ backgroundColor: rect.colorToken }}
+                    className="fleet-tile-fill absolute inset-0"
                   />
                   {rect.image ? (
                     <div
@@ -497,11 +514,8 @@ export function FleetTreemap() {
                   ) : null}
                   <div
                     aria-hidden="true"
-                    className="absolute inset-x-0 bottom-0"
-                    style={{
-                      height: gradientHeight,
-                      background: `linear-gradient(to top, color-mix(in oklab, ${rect.colorToken} 90%, transparent), transparent)`,
-                    }}
+                    className="fleet-tile-readability absolute inset-x-0 bottom-0"
+                    style={{ height: gradientHeight }}
                   />
                   {showChip ? (
                     <div
