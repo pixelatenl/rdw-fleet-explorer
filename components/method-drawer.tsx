@@ -1,5 +1,5 @@
 import { Drawer } from "@/components/drawer";
-import { snapshot } from "@/data/snapshot";
+import { snapshot, formatNumber } from "@/data/snapshot";
 
 /**
  * The Method and sources drawer of this product, mounted from the
@@ -57,6 +57,27 @@ export function MethodDrawer() {
             cilinderinhoud
           </code>
           , and cohorts under 1,000 vehicles are excluded.
+        </li>
+        <li>
+          The fleet by fuel: the raw fuel register holds one
+          registration per fuel,{" "}
+          {formatNumber(snapshot.totals.fuelRegistrations)} records
+          covering the{" "}
+          {formatNumber(snapshot.totals.vehiclesWithFuelData)} vehicles
+          with fuel data. The chart classifies every vehicle once, in
+          this order: battery electric (electricity with no recorded
+          hybrid class), full hybrid and plug-in hybrid (electricity
+          plus a combustion fuel, by the recorded hybrid class, the
+          same classes as the drivetrain treemap), LPG (an LPG record
+          without electricity: petrol cars converted to also run LPG,
+          their distinguishing fuel), petrol (benzine without
+          electricity and without LPG), diesel (diesel without
+          electricity; diesel-plus-LNG duals stay here), and
+          everything else — fuel cell hybrids, hydrogen combustion,
+          CNG, alcohol, LNG — as other. The register is a live
+          administrative dataset, so a small residue of records it
+          does not record cleanly (broken fuel sequences, unclassified
+          hybrids) is grouped under other as well.
         </li>
         <li>
           The fuel cell coverage is a SoQL count of distinct{" "}

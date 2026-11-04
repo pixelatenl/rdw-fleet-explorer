@@ -61,14 +61,14 @@ export interface Narration {
    *  visual is re-narrated only when its context hash changes. */
   signatures?: {
     treemap?: string;
-    fuelRegistrations?: string;
+    fleetByFuel?: string;
     vehicleTypes?: string;
     heavyTurn?: string;
     entryYears?: string;
   };
   visuals: {
     treemap?: string;
-    fuelRegistrations?: string;
+    fleetByFuel?: string;
     vehicleTypes?: string;
     heavyTurn?: string;
     entryYears?: string;
@@ -88,7 +88,11 @@ export interface Snapshot {
     vehiclesWithFuelData: number;
     fuelRegistrations: number;
   };
-  fuelRegistrations: LabeledCount[];
+  /**
+   * The fleet by fuel: every vehicle with fuel data in exactly one
+   * mutually exclusive category, ordered by count descending.
+   */
+  fleetByFuel: LabeledCount[];
   electricSplit: LabeledCount[];
   fuelCellByFuel: LabeledCount[];
   vehicleTypes: LabeledCount[];
@@ -140,6 +144,3 @@ export const batteryElectricShareOfFuelVehicles =
 export const passengerCars =
   snapshot.vehicleTypes.find((entry) => entry.label === "Passenger car")
     ?.count ?? 0;
-
-export const fuelRegistrationsTotal =
-  snapshot.fuelRegistrations.reduce((sum, entry) => sum + entry.count, 0);

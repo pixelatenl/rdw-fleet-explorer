@@ -1,5 +1,5 @@
 {
-  "retrievedAt": "2026-11-03",
+  "retrievedAt": "2026-11-04",
   "source": {
     "name": "RDW Open Data",
     "url": "https://opendata.rdw.nl",
@@ -15,16 +15,14 @@
     "vehiclesWithFuelData": 15173606,
     "fuelRegistrations": 17042252
   },
-  "fuelRegistrations": [
-    { "key": "benzine", "label": "Petrol", "count": 11308514 },
-    { "key": "elektriciteit", "label": "Electric", "count": 2961962 },
-    { "key": "diesel", "label": "Diesel", "count": 2602528 },
-    { "key": "lpg", "label": "LPG", "count": 149683 },
-    { "key": "cng", "label": "CNG", "count": 12086 },
-    { "key": "alcohol", "label": "Alcohol", "count": 4675 },
-    { "key": "lng", "label": "LNG", "count": 1601 },
-    { "key": "waterstof", "label": "Hydrogen", "count": 1202 },
-    { "key": "onbekend", "label": "Unknown", "count": 1 }
+  "fleetByFuel": [
+    { "key": "petrol", "label": "Petrol", "count": 9477781 },
+    { "key": "diesel", "label": "Diesel", "count": 2577327 },
+    { "key": "battery-electric", "label": "Battery electric", "count": 1245906 },
+    { "key": "full-hybrid", "label": "Full hybrid", "count": 995189 },
+    { "key": "plug-in-hybrid", "label": "Plug-in hybrid", "count": 718786 },
+    { "key": "lpg", "label": "LPG", "count": 148002 },
+    { "key": "other", "label": "Other", "count": 10615 }
   ],
   "electricSplit": [
     { "key": "bev", "label": "Battery electric", "count": 1245906 },
@@ -292,13 +290,17 @@
     }
   },
   "narration": {
-    "signature": "10c26a946cdec5d328ad0b62e4f411c0e9481947a03f00a2cc906f59ab5c2525",
     "visuals": {
       "treemap": "The treemap shows 15,173,606 Dutch vehicles split by drivetrain, with 2,961,962 (19.5%) having electric drive. Battery electric vehicles make up 1,245,906 (8.2%) of the fleet.",
-      "fuelRegistrations": "Petrol leads with 11,308,514 registrations, making up 66.4% of the total 17,042,252 fuel registrations.",
       "vehicleTypes": "This chart shows the count of every vehicle in the register by its type, and 10,828,729 of them are passenger cars.",
       "heavyTurn": "The chart shows two lines: one for average car mass rising from 1,195 kg in 1975 to 1,669 kg in 2026, and another for average engine size falling from 2,673 cc in 1975 to 1,406 cc in 2018 before rising to 1,613 cc in 2026. The most notable trend is cars getting heavier while engines shrink and then partially rebound.",
       "entryYears": "The chart shows how many vehicles on Dutch roads today were first registered each decade since 1970, with the tallest bar in the 2020s. More than half of all registered vehicles entered the fleet in 2017 or later."
+    },
+    "signatures": {
+      "treemap": "9773bca7c7ace4430e768b2b57e83b35d2989bcdabf8cfce4fba7fa6f95b6a81",
+      "vehicleTypes": "be4af2911d60b1ee517e99a4765f642ec0159dab3fe6e08dd2aeabd991c77c75",
+      "heavyTurn": "9c4a2b78db4269a196cde4ff9a08a0b42aff8baf211bd8c1b4ee6642e15174f0",
+      "entryYears": "32723677ab958e02cfb7cc45ceccb655af0afcbb7ba26effda6b13dfc5688bc8"
     }
   }
 }

@@ -341,7 +341,8 @@ export function FleetTreemap() {
     <figure>
       <figcaption className="mb-3">
         <span className="block text-lg font-semibold text-primary dark:text-white">
-          Vehicles by drivetrain, sized by count.
+          Vehicles by drivetrain, sized by count, of the{" "}
+          {formatNumber(withFuelData)} with fuel data.
         </span>
         <span className="mt-1 block text-sm text-muted-foreground">
           Hybrid drivetrains are grouped by their recorded hybrid class.
