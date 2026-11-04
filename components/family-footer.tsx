@@ -31,6 +31,12 @@ export function FamilyFooter({ extra }: { extra?: React.ReactNode }) {
         <div className="flex items-center gap-4 text-sm">
           {extra}
           <Link
+            href={FAMILY.sourceUrl}
+            className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
+            GitHub
+          </Link>
+          <Link
             href={FAMILY.launcherUrl}
             className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
           >

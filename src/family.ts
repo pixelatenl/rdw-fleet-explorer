@@ -12,4 +12,9 @@ export const FAMILY = {
    */
   launcherUrl: "https://opendata.pixelate.nl/",
   launcherLabel: "Open Data Project",
+  /**
+   * Source repository of this product, linked from the shared family
+   * footer so the site points at the code that builds it.
+   */
+  sourceUrl: "https://github.com/pixelatenl/rdw-fleet-explorer",
 } as const;
