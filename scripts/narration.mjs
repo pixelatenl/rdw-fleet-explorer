@@ -30,6 +30,7 @@ const SYSTEM_PROMPT = [
   "Plain English, at most two sentences.",
   "Tell the visitor what is on the screen and the single most notable thing about it.",
   "Use only figures that appear in the provided context; never introduce a number that is not in the context.",
+  "State every share and comparison as a percentage with a numeral taken from the context (for example '17.0%'); never as a prose ratio.",
   "No markdown, no lists, no hedging (never write words like 'approximately', 'around', 'seems', or 'likely').",
   "Output only the insight text.",
 ].join(" ");
@@ -41,9 +42,10 @@ const share = (part, whole) =>
 /*
   One guidance line shared by every visual context: shares and
   comparisons are stated as percentages with numerals taken from the
-  context figures, never as prose ratios. Because the line is part of
-  each context, it moves every visual's signature, and the prose-ratio
-  lint in validateNarration enforces it on the returned text.
+  context figures, never as prose ratios. The line sits with the other
+  instructions, before the figures, and because it is part of each
+  context it moves every visual's signature; the prose-ratio lint in
+  validateNarration enforces it on the returned text.
 */
 const NUMERALS_GUIDANCE =
   "Guidance: state every share and comparison as a percentage with a numeral taken from the context figures (for example '17.0%'); prose ratios such as 'one in twelve', 'six out of ten', or 'two in five' are not permitted.";
@@ -96,6 +98,7 @@ export function visualContexts(snapshot) {
     "Shows: two line charts, the average mass in kilograms and the average engine size in cubic centimetres of passenger cars by the year they were first registered in the Netherlands.",
     `Cohorts: ${format(cohorts.length)} first-registration-year cohorts from ${first.year} to ${last.year}, each with at least ${format(1000)} cars.`,
     "Population: the most recent cohort is a partial year. Average mass covers all passenger cars, electric ones included. Engine size covers only the cars that have an engine, because electric vehicles have no cylinder capacity.",
+    NUMERALS_GUIDANCE,
     `Average mass grows from ${format(first.avgMass)} kg in ${first.year} to ${format(last.avgMass)} kg in ${last.year}; the heaviest cohort is ${heaviest.year} at ${format(heaviest.avgMass)} kg.`,
     `Average engine size shrinks from ${format(first.avgEngineSize)} cc in ${first.year} to a low of ${format(smallestEngine.avgEngineSize)} cc in ${smallestEngine.year}, and stands at ${format(last.avgEngineSize)} cc in ${last.year}.`,
   ];
@@ -104,7 +107,6 @@ export function visualContexts(snapshot) {
       `The ${last.year} cohort holds ${format(last.count)} cars, of which ${format(last.count - latestEngine.withEngine)} have no engine size to measure.`,
     );
   }
-  heavyTurnLines.push(NUMERALS_GUIDANCE);
 
   // The entry-year chart starts at 1970, mirroring its FROM_YEAR.
   const entryRows = snapshot.registrationYears.filter(
@@ -141,13 +143,13 @@ export function visualContexts(snapshot) {
     "Title: When today's fleet entered the Netherlands",
     "Shows: bars counting the vehicles still registered today by the year they were first registered in the Netherlands, from 1970 onward; a bar is a survivor count, not the number registered that year, and the most recent year is a partial count.",
     `Population: the years are years of first registration in the Netherlands, and the chart covers the ${format(entryTotal)} vehicles first registered in 1970 or later.`,
+    NUMERALS_GUIDANCE,
     ...[...decadeCounts].map(
       ([decade, count]) => `${decade}s: ${format(count)} vehicles`,
     ),
     `Largest year: ${largestEntry.year} with ${format(largestEntry.count)} vehicles.`,
     `Half of the fleet entered in ${medianEntryYear} or later.`,
     `${format(snapshot.registrationYearsUnknown)} vehicles have no registration year recorded.`,
-    NUMERALS_GUIDANCE,
   ];
 
   return {
@@ -155,30 +157,31 @@ export function visualContexts(snapshot) {
       "Title: How electric is the Dutch fleet? (hero treemap)",
       `Shows: a treemap of the ${format(withFuel)} vehicles with fuel data, split into drivetrain tiles sized by their share of the vehicles with fuel data.`,
       `Population: every share on this chart is a share of the ${format(withFuel)} vehicles with fuel data; for contrast, the full register counts ${format(totals.vehicles)} vehicles, of which ${format(withoutFuel)} are trailers and towed equipment without fuel data.`,
+      NUMERALS_GUIDANCE,
       ...treemapTiles.map(
         (tile) =>
           `${tile.label}: ${format(tile.count)} vehicles (${share(tile.count, withFuel)} of vehicles with fuel data)`,
       ),
       `Total with electric drive: ${format(electricTotal)} vehicles (${share(electricTotal, withFuel)} of vehicles with fuel data).`,
       "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'.",
-      NUMERALS_GUIDANCE,
     ].join("\n"),
     fleetByFuel: [
       "Title: The fleet by fuel",
       "Shows: bars counting the vehicles with fuel data by fuel, every vehicle in exactly one category; the other category holds fuel cell hybrids, hydrogen, CNG, alcohol, and LNG vehicles, plus a small residue of incomplete records.",
       `Population: the chart covers the ${format(withFuel)} vehicles with fuel data, and every share is a share of those vehicles. As register background only: the raw fuel register holds one registration per fuel, ${format(totals.fuelRegistrations)} records covering the ${format(withFuel)} vehicles.`,
       "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'. A hybrid is a hybrid: it is counted once, never also as petrol or diesel.",
+      "Guidance: name the two largest categories, each with its percentage from the figures below.",
+      NUMERALS_GUIDANCE,
       ...fleetByFuelLines,
       `Total: ${format(withFuel)} vehicles with fuel data.`,
-      NUMERALS_GUIDANCE,
     ].join("\n"),
     vehicleTypes: [
       "Title: The register by vehicle type",
       "Shows: bars counting every vehicle in the register by its recorded vehicle type; the fleet is far more than cars.",
       `Population: every share on this chart is a share of the full register of ${format(totals.vehicles)} vehicles, which spans every vehicle type, mopeds, trailers, tractors and vans included.`,
+      NUMERALS_GUIDANCE,
       `Register total: ${format(totals.vehicles)} vehicles.`,
       ...typeLines,
-      NUMERALS_GUIDANCE,
     ].join("\n"),
     // The heavy turn has no context without cohorts, so it is left out
     // and gets no narration rather than narrating an empty chart.
