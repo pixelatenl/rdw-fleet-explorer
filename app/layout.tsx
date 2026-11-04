@@ -58,12 +58,12 @@ export const metadata: Metadata = {
 
 /*
   Theme colors mirror the --background tokens in globals.css:
-  #eaf6f9 for light, #051214 for dark (the family hub's canvas).
+  #eaf6f9 for light, #0f353d for dark.
 */
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#eaf6f9" },
-    { media: "(prefers-color-scheme: dark)", color: "#051214" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f353d" },
   ],
 };
 
