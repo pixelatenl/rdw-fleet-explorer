@@ -177,11 +177,13 @@ export default function Home() {
         </Card>
 
         <div className="mt-8">
-          <FleetTreemap />
+          <Card>
+            <CardContent className="px-4 sm:px-6">
+              <FleetTreemap />
+              {insights?.treemap && <AiInsight text={insights.treemap} />}
+            </CardContent>
+          </Card>
         </div>
-        {insights?.treemap && (
-          <AiInsight text={insights.treemap} outlined />
-        )}
       </section>
 
       <section className="mb-12">

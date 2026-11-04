@@ -28,8 +28,10 @@ const MIN_TILE_PX = 8;
 /** Spacing between tiles; each tile is inset by half of this per side. */
 const TILE_GAP_PX = 6;
 const TILE_INSET_PX = TILE_GAP_PX / 2;
-/** Tiles smaller than this in either dimension hide their text layer. */
-const MIN_TEXT_WIDTH_PX = 80;
+/** Tiles smaller than this in either dimension hide their text layer;
+ *  72 admits the plug-in hybrid tile at a 390px viewport inside the
+ *  card frame, with a count fitted down to it. */
+const MIN_TEXT_WIDTH_PX = 72;
 const MIN_TEXT_HEIGHT_PX = 52;
 /** Tiles smaller than this in either dimension hide their icon layer. */
 const MIN_ICON_WIDTH_PX = 48;
@@ -90,13 +92,14 @@ const CHIP_CLEAR_PX = 8 + 56 + 4;
  * so the squarified layout lays the four electrified tiles side by
  * side in a strip tall enough for their labels and fitted counts — at
  * the narrow anchor, and holding there below it. Both anchors are
- * content-box widths of this figure — the page container carries
- * px-4 below sm and px-6 from sm up — so 976 is the canvas at the
- * 1024px viewport where the old wrap used to start, and 358 the
- * canvas at a 390px viewport.
+ * content-box widths of this figure in its card frame — the page
+ * container carries px-4 below sm and px-6 from sm up, the card adds
+ * its 2px border and the CardContent padding px-4 below sm and px-6
+ * from sm — so 926 is the canvas at the 1024px viewport and 324 the
+ * canvas at a 390px viewport, inside the card.
  */
-const CANVAS_VIDEO_WIDTH_PX = 976;
-const CANVAS_SQUARE_WIDTH_PX = 358;
+const CANVAS_VIDEO_WIDTH_PX = 926;
+const CANVAS_SQUARE_WIDTH_PX = 324;
 /** The wide aspect ratio at and above the wide anchor. */
 const CANVAS_ASPECT_VIDEO = 9 / 16;
 /** The narrow aspect ratio at and below the narrow anchor. */
