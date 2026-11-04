@@ -216,7 +216,7 @@ export default function Home() {
               fuel category.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-1 flex-col">
             <FleetByFuelChart />
             <p className="mt-4 text-sm text-muted-foreground">
               Every vehicle counted once. A hybrid is a hybrid: it is not
@@ -224,7 +224,9 @@ export default function Home() {
               counted once as LPG.
             </p>
             {insights?.fleetByFuel && (
-              <AiInsight text={insights.fleetByFuel} />
+              <div className="mt-auto">
+                <AiInsight text={insights.fleetByFuel} />
+              </div>
             )}
           </CardContent>
         </Card>
@@ -236,10 +238,12 @@ export default function Home() {
               vans are all part of the register.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-1 flex-col">
             <VehicleTypesChart />
             {insights?.vehicleTypes && (
-              <AiInsight text={insights.vehicleTypes} />
+              <div className="mt-auto">
+                <AiInsight text={insights.vehicleTypes} />
+              </div>
             )}
           </CardContent>
         </Card>
