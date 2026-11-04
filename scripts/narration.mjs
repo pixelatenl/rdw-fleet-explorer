@@ -66,9 +66,22 @@ export function visualContexts(snapshot) {
   const withFuel = totals.vehiclesWithFuelData;
   const withoutFuel = totals.vehicles - withFuel;
 
+  /*
+    The treemap's four-tile presentation: fuel cell hybrids count as
+    battery electric in that chart — a fuel cell vehicle is a full
+    battery vehicle — so the fchv entry folds into the battery
+    electric count instead of standing as its own tile. The
+    electric-drive chart below splits them back out.
+  */
+  const splitCount = (key) =>
+    snapshot.electricSplit.find((entry) => entry.key === key)?.count ?? 0;
+  const fchvCount = splitCount("fchv");
+  const mergedBev = splitCount("bev") + fchvCount;
   const treemapTiles = [
     { label: "No electric drive", count: withFuel - electricTotal },
-    ...snapshot.electricSplit,
+    { label: "Battery electric", count: mergedBev },
+    { label: "Full hybrid", count: splitCount("novc-hev") },
+    { label: "Plug-in hybrid", count: splitCount("ovc-hev") },
   ];
 
   const fleetByFuelLines = snapshot.fleetByFuel.map(
@@ -155,15 +168,17 @@ export function visualContexts(snapshot) {
   return {
     treemap: [
       "Title: How electric is the Dutch fleet? (hero treemap)",
-      `Shows: a treemap of the ${format(withFuel)} vehicles with fuel data, split into drivetrain tiles sized by their share of the vehicles with fuel data.`,
+      `Shows: a treemap of the ${format(withFuel)} vehicles with fuel data, split into four drivetrain tiles sized by their share of the vehicles with fuel data; fuel cell hybrids count as battery electric on this chart, and the electric-drive chart below splits them back out.`,
       `Population: every share on this chart is a share of the ${format(withFuel)} vehicles with fuel data; for contrast, the full register counts ${format(totals.vehicles)} vehicles, of which ${format(withoutFuel)} are trailers and towed equipment without fuel data.`,
       NUMERALS_GUIDANCE,
       ...treemapTiles.map(
         (tile) =>
           `${tile.label}: ${format(tile.count)} vehicles (${share(tile.count, withFuel)} of vehicles with fuel data)`,
       ),
+      `Battery electric composition: the ${format(mergedBev)} battery electric vehicles include ${format(fchvCount)} fuel cell hybrids (${share(fchvCount, mergedBev)} of the battery electric count) and ${format(mergedBev - fchvCount)} pure battery electric vehicles.`,
       `Total with electric drive: ${format(electricTotal)} vehicles (${share(electricTotal, withFuel)} of vehicles with fuel data).`,
       "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'.",
+      "Guidance: state the battery electric figure exactly as the chart shows it, as one count with the fuel cell hybrids included in it; never quote a battery electric count that leaves them out.",
     ].join("\n"),
     fleetByFuel: [
       "Title: The fleet by fuel",
