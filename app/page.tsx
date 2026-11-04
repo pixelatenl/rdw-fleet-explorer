@@ -138,19 +138,21 @@ export default function Home() {
           Dutch open data
         </p>
         {/*
-          Editorial cover. The question is the page's display heading:
-          fluid clamp sizing (about 2.7rem at a 390px viewport rising
-          to about 4.75rem at desktop), the heaviest weight the system
-          sans stack offers, tight leading and tracking, and an em-based
-          max-width that keeps the two-line shape at every width — the
-          line always breaks after "is the", never by a hard <br>. The
-          accented words take the theme-adaptive battery-electric orange
-          (--drivetrain-bev: 3.4 to 1 on the light canvas, 5.3 to 1 on
-          the dark), the family's header language. The deck steps up to
-          text-xl on a ~62-character measure with more air above the
-          first chart; every word of the copy stays verbatim.
+          Editorial cover. The question is the page's display heading,
+          shouted in capitals: fluid clamp sizing (about 2.4rem at a
+          390px viewport rising to about 4.75rem at desktop, capitals
+          are wider so the floor sits lower than the mixed-case cut),
+          the heaviest weight the system sans stack offers, tight
+          leading and tracking, and an em-based max-width that keeps
+          the two-line shape at every width — the line breaks after
+          "IS THE" or "IS" by natural wrapping, never a hard <br>. The
+          accented words take the theme-adaptive battery-electric
+          orange (--drivetrain-bev: 3.4 to 1 on the light canvas, 5.3
+          to 1 on the dark), the family's header language. The deck
+          steps up to text-xl on a ~62-character measure with more air
+          above the first chart; every word of the copy stays verbatim.
         */}
-        <h1 className="max-w-[11em] text-[clamp(2.6rem,1.96rem+2.9vw,4.75rem)] font-black leading-[1.08] tracking-tight">
+        <h1 className="max-w-[11em] text-[clamp(2.4rem,1.6rem+3.28vw,4.75rem)] font-black uppercase leading-[1.08] tracking-tight">
           How <span className="text-(--drivetrain-bev)">electric</span> is
           the{" "}
           <span className="text-(--drivetrain-bev)">Dutch</span> fleet?
