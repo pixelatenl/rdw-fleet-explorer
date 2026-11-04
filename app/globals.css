@@ -157,9 +157,10 @@
 
 /*
   Fleet treemap tile treatment. Tiles fill flat with the drivetrain
-  tokens above; the no-electric tile pins one mid teal in both themes
-  (the light chart-5 mint shaded 15% toward the dark foreground, so
-  the tile reads darker with more presence), and tile text sits on a
+  tokens above; the no-electric tile pins one mid slate teal in both
+  themes (#5f9297, a solid mid-tone with body rather than a pale
+  mint, so the 80.5 percent resting mass reads as one calm surface)
+  and tile text sits on a
   readability gradient of the tile
   color at 90% opacity over the duotone photo. Because the flat fills
   no longer shade toward the theme surface, each tile also carries a
@@ -168,10 +169,16 @@
   dark ink there, while the light theme keeps the dark foreground ink
   except on the two darker hues (full hybrid violet, fuel cell rose),
   which take white. The focus treatment further below decides which
-  of these states each tile rests in.
+  of these states each tile rests in. The mid teal keeps every rule in
+  check per theme: against the light canvas #eaf6f9 it reaches 3.15
+  to 1 (the old pale mint fell to 2.0), against the dark family
+  canvas #051214 5.48 to 1, and the dark foreground ink counts on it
+  at 5.48 to 1, its labels at about 4.2 to 1 — above the labels of
+  the saturated categorical tiles — with the icons on their chip at
+  4.85 to 1.
 */
 :root {
-  --fleet-tile-no-electric: #73b9c6;
+  --fleet-tile-no-electric: #5f9297;
   --fleet-ink-no-electric: var(--card-foreground);
   --fleet-ink-bev: var(--card-foreground);
   --fleet-ink-novc-hev: #ffffff;
@@ -220,7 +227,7 @@
 }
 
 .dark {
-  --fleet-tile-no-electric: #73b9c6;
+  --fleet-tile-no-electric: #5f9297;
   --fleet-ink-no-electric: var(--primary-foreground);
   --fleet-ink-bev: var(--primary-foreground);
   --fleet-ink-novc-hev: var(--primary-foreground);
