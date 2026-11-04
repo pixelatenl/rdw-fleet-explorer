@@ -58,6 +58,42 @@ fuel record. The pipeline checks this as a tolerance identity.
 - SoQL on this dataset supports `field is null` for the class and fuel
   fields (use it; `not in (...)` silently drops nulls).
 
+## The fuel cell class: records versus vehicles
+
+The fuel cell hybrid class is a tiny, emerging category and the
+register applies it loosely. Verified live on 4 November 2026
+(`select count(distinct kenteken) where klasse hybride in
+('NOVC-FCHV','OVC-FCHV')`, plus a full fetch of the group's 4,169
+rows — a small group under the fetch rule):
+
+- **2,082 distinct vehicles** carry the class. Their rows total
+  **4,169 fuel records**: 2,082 Elektriciteit (exactly one per classed
+  vehicle, the verified identity above), 1,083 Waterstof, 992 Benzine,
+  7 Diesel, 4 LPG, 1 Alcohol.
+- The per-fuel coverage counts (the snapshot's `fuelCellByFuel`) are
+  **record counts** — one row per recorded fuel. Per fuel they happen
+  to equal the distinct vehicles listing that fuel, but they must
+  never be summed into a vehicle total: the sum is 4,169 *records*,
+  roughly twice the vehicle count, because every classed vehicle books
+  several fuels. The site copy once summed the entries and called the
+  result vehicles; the vehicle basis is the distinct-kenteken count,
+  which equals the Elektriciteit entry.
+- Roughly **half of the 2,082 vehicles list petrol, not hydrogen, as
+  their other fuel** (992 petrol records against 1,083 hydrogen) — an
+  artefact of the register's young fuel cell bookkeeping. The sequence
+  position is no cleaner here than elsewhere: 396 of the hydrogen
+  records and 986 of the petrol records are volgnummer 1, so "second
+  fuel record" must not be read as volgnummer-2.
+- The non-electric records number 2,087 over 2,082 vehicles; the five
+  extra records belong to the five vehicles that book a **third** fuel
+  (verified in the full fetch; e.g. VLH38V lists LPG, Elektriciteit and
+  Benzine).
+- The class-based tile follows the register faithfully — the `fchv`
+  entry folds into battery electric in the treemap, and the electric
+  slice chart splits it back out — and the page's coverage fact
+  discloses the noise: vehicles stated as vehicles (2,082), the
+  per-fuel split stated as records.
+
 ## The fleet-by-fuel classification
 
 Seven mutually exclusive categories, in rule order: battery electric →
