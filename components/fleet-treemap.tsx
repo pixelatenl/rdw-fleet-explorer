@@ -593,7 +593,7 @@ export function FleetTreemap() {
                       </p>
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                         <p
-                          className={`font-black tabular-nums ${tierClass}`}
+                          className={`font-black tracking-tight tabular-nums ${tierClass}`}
                           style={countStyle}
                         >
                           {formatNumber(
