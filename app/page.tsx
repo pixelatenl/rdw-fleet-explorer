@@ -3,7 +3,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { FleetTreemap } from "@/components/fleet-treemap";
 import { ElectricSplitChart } from "@/components/electric-split-chart";
@@ -187,7 +186,7 @@ export default function Home() {
       <section className="mb-12">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The electric slice, in detail</CardTitle>
+            <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The electric slice, in detail</h2>
             <CardDescription>
               The treemap above shows the whole fleet; this view keeps only
               the {formatNumber(electricVehicles)} vehicles with electric
@@ -210,7 +209,7 @@ export default function Home() {
       <section className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The fleet by fuel</CardTitle>
+            <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The fleet by fuel</h2>
             <CardDescription>
               The {formatNumber(snapshot.totals.vehiclesWithFuelData)}{" "}
               vehicles with fuel data, each counted once in exactly one
@@ -233,7 +232,7 @@ export default function Home() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The register by vehicle type</CardTitle>
+            <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The register by vehicle type</h2>
             <CardDescription>
               The fleet is far more than cars: mopeds, trailers, tractors and
               vans are all part of the register.
@@ -253,7 +252,7 @@ export default function Home() {
       <section className="mb-12">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">When today&apos;s fleet entered the Netherlands</CardTitle>
+            <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">When today&apos;s fleet entered the Netherlands</h2>
             <CardDescription>
               Each bar counts only the vehicles from that entry year that
               are still registered today. Vehicles scrapped, exported, or
@@ -281,7 +280,7 @@ export default function Home() {
       <section className="mb-12">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The heavy turn</CardTitle>
+            <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">The heavy turn</h2>
             <CardDescription>
               Average mass and engine size of passenger cars by the year
               they were first registered in the Netherlands. Engines
