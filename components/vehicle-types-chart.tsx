@@ -18,7 +18,7 @@ export function VehicleTypesChart() {
   const total = snapshot.totals.vehicles;
 
   return (
-    <ul className="flex flex-col gap-2.5">
+    <ul className="flex flex-col gap-3">
       {display.map((row, index) => {
         const share = row.count / total;
         return (
@@ -32,7 +32,7 @@ export function VehicleTypesChart() {
                 </span>
               </span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--chart-track)]">
+            <div className="h-3.5 w-full overflow-hidden rounded-full bg-[var(--chart-track)]">
               <div
                 className={`h-full rounded-full chart-gradient-${index < 6 ? 2 : 5} group-hover:[background:var(--brand-accent)]`}
                 style={{ width: `${share * 100}%` }}

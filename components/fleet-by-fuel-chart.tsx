@@ -31,7 +31,7 @@ export function FleetByFuelChart() {
     .sort((a, b) => b.count - a.count);
 
   return (
-    <ul className="flex flex-col gap-2.5">
+    <ul className="flex flex-col gap-3">
       {rows.map((row) => {
         const share = row.count / withFuelData;
         return (
@@ -45,7 +45,7 @@ export function FleetByFuelChart() {
                 </span>
               </span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--chart-track)]">
+            <div className="h-3.5 w-full overflow-hidden rounded-full bg-[var(--chart-track)]">
               <div
                 className={`h-full rounded-full chart-gradient-${tokenByKey[row.key] ?? 2} group-hover:[background:var(--brand-accent)]`}
                 style={{ width: `${share * 100}%` }}
