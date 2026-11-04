@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <style>
   /* Brand values mirror app/globals.css: dark theme background #0F353D,
-     primary #48B9D1, foreground #E9F6F9, muted-foreground #9AC0CB. */
+     primary #48B9D1, foreground #E9F6F9, muted-foreground #9AC0CB.
+     No figures live on this image: every number the page states derives
+     from the committed snapshot through the meta description, so the
+     image never goes stale between weekly rebuilds. */
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1200px; height: 630px; overflow: hidden; }
   body {
@@ -18,7 +21,7 @@
     padding: 72px 80px 64px;
     position: relative;
   }
-  /* Decorative pixel grid echoing app/icon.svg, bottom right. */
+  /* Decorative pixel grid echoing app/icon.svg, top right. */
   .pixels {
     position: absolute;
     right: 80px;
@@ -44,32 +47,31 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #48B9D1;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
+  /* The product name in the family display style the page's hero uses:
+     top weight, capitals, tight tracking. */
   h1 {
-    font-size: 68px;
-    line-height: 1.08;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    max-width: 820px;
-  }
-  .share {
-    display: flex;
-    align-items: baseline;
-    gap: 28px;
-    margin-top: 12px;
-  }
-  .share .number {
-    font-size: 132px;
-    font-weight: 700;
+    font-size: 64px;
+    line-height: 1.04;
+    font-weight: 900;
     letter-spacing: -0.03em;
-    color: #48B9D1;
+    text-transform: uppercase;
+    text-wrap: balance;
+    max-width: 980px;
   }
-  .share .label {
-    font-size: 28px;
-    line-height: 1.3;
+  /* Stable tagline: the product's question in the family accent, then
+     the standing promise. Nothing here changes with the data. */
+  .tagline {
+    margin-top: 28px;
+    font-size: 30px;
+    line-height: 1.4;
     color: #9AC0CB;
-    max-width: 560px;
+    max-width: 860px;
+  }
+  .tagline strong {
+    font-weight: 700;
+    color: #48B9D1;
   }
   footer {
     display: flex;
@@ -100,15 +102,12 @@
   </div>
   <div>
     <p class="kicker">Dutch open data, visualized by Pixelate</p>
-    <h1>How electric is the Dutch fleet?</h1>
-  </div>
-  <div class="share">
-    <div class="number">19.5%</div>
-    <div class="label">of vehicles with fuel data in the complete RDW vehicle register run electric</div>
+    <h1>Dutch Fleet Electrification Explorer</h1>
+    <p class="tagline"><strong>How electric is the Dutch fleet?</strong> Live aggregates from the complete RDW vehicle register, refreshed weekly.</p>
   </div>
   <footer>
     <div class="domain"><em>fleet</em>.pixelate.nl</div>
-    <div class="meta">RDW snapshot 1 November 2026 &middot; refreshed weekly</div>
+    <div class="meta">RDW open data &middot; refreshed weekly</div>
   </footer>
 </body>
 </html>

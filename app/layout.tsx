@@ -3,16 +3,45 @@ import "./globals.css";
 import { FamilyHeader } from "@/components/family-header";
 import { FamilyFooter } from "@/components/family-footer";
 import { MethodDrawer } from "@/components/method-drawer";
+import { FAMILY } from "@/family";
+import {
+  snapshot,
+  electricShareOfFuelVehicles,
+  formatNumber,
+  formatPercent,
+} from "@/data/snapshot";
 
-const SITE_URL = "https://fleet.pixelate.nl";
-const SITE_DESCRIPTION =
-  "How electric is the Dutch fleet? Live aggregates from the complete RDW vehicle register, refreshed weekly and visualized by Pixelate.";
+/*
+  Site metadata, derived at build time from the committed snapshot —
+  the same derived-not-hardcoded rule the page follows, so the numbers
+  in the meta tags can never go stale between weekly rebuilds. The
+  title names the product in under sixty characters; the description
+  carries the register total and the electric-drive share, formatted
+  and rounded exactly as the page renders them, and lands in the
+  150-to-160-character band on the current snapshot. Every figure is
+  computed in this module scope at build time through Next's static
+  metadata path: no runtime code, no pipeline calls, no numbers
+  copied by hand.
+*/
+const SITE_TITLE = `${FAMILY.productName} | ${FAMILY.organization}`;
+const SITE_DESCRIPTION = `${formatPercent(electricShareOfFuelVehicles)} of the ${formatNumber(
+  snapshot.totals.vehiclesWithFuelData,
+)} Dutch vehicles with fuel data run electric — live aggregates from the complete ${formatNumber(
+  snapshot.totals.vehicles,
+)}-vehicle RDW register, refreshed weekly.`;
+
+/*
+  A stable alt for the Open Graph image: the image itself carries no
+  figures, so neither layer can go stale between rebuilds — the
+  derived description carries the numbers instead.
+*/
+const OG_IMAGE_ALT = `The ${FAMILY.productName} in the Pixelate family's dark display style: the product name, its question, and the RDW open-data credit.`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(FAMILY.siteUrl),
   title: {
-    default: "Dutch Fleet Electrification Explorer",
-    template: "%s | Dutch Fleet Electrification Explorer",
+    default: SITE_TITLE,
+    template: `%s | ${FAMILY.productName}`,
   },
   description: SITE_DESCRIPTION,
   keywords: [
@@ -23,16 +52,19 @@ export const metadata: Metadata = {
     "data visualization",
     "EV statistics",
   ],
-  authors: [{ name: "Pixelate BV", url: "https://pixelate.nl" }],
+  authors: [{ name: FAMILY.organization, url: FAMILY.organizationUrl }],
+  // Next normalizes the site root to its slashless form
+  // (https://fleet.pixelate.nl), which URLs resolve identically, so
+  // the canonical and og:url stay on the metadata path instead of a
+  // duplicated raw tag.
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Dutch Fleet Electrification Explorer",
-    description:
-      "Live aggregates from the complete RDW vehicle register, visualized by Pixelate.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     type: "website",
-    siteName: "fleet.pixelate.nl",
+    siteName: FAMILY.siteName,
     url: "/",
     locale: "en",
     images: [
@@ -40,13 +72,13 @@ export const metadata: Metadata = {
         url: "/images/og.png",
         width: 1200,
         height: 630,
-        alt: "How electric is the Dutch fleet? 19.5 percent of vehicles with fuel data run electric",
+        alt: OG_IMAGE_ALT,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dutch Fleet Electrification Explorer",
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/images/og.png"],
   },
@@ -54,6 +86,44 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+};
+
+/*
+  Structured data in the page head, one node per file the static
+  export serves. The Dataset node is the honest type for a page built
+  from aggregates: the attribution states that the aggregates derive
+  from the RDW open data (opendata.rdw.nl), the license is the CC0 the
+  source carries, the repository is where the site's code lives, and
+  dateModified is the snapshot's retrieval date. The WebSite node is
+  minimal: the product and its canonical URL.
+*/
+const datasetJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: "Dutch fleet aggregates from the RDW vehicle register",
+  description: SITE_DESCRIPTION,
+  url: FAMILY.siteUrl,
+  isAccessibleForFree: true,
+  license: "https://creativecommons.org/publicdomain/zero/1.0/",
+  creator: {
+    "@type": "Organization",
+    name: FAMILY.organization,
+    url: FAMILY.organizationUrl,
+  },
+  provider: {
+    "@type": "Organization",
+    name: "RDW (Rijksdienst voor het Wegverkeer)",
+    url: "https://opendata.rdw.nl",
+  },
+  sameAs: FAMILY.sourceUrl,
+  dateModified: snapshot.retrievedAt,
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: FAMILY.productName,
+  url: FAMILY.siteUrl,
 };
 
 /*
@@ -88,6 +158,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <div className="flex min-h-screen flex-col">

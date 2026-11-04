@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { FAMILY } from "@/family";
 
 export const dynamic = "force-static";
 
@@ -8,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://fleet.pixelate.nl/sitemap.xml",
+    sitemap: `${FAMILY.siteUrl}/sitemap.xml`,
   };
 }

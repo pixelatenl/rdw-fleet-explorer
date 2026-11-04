@@ -132,3 +132,31 @@ log small residuals in the run log:
   secondary diesel rows.
 
 A negative category always fails the snapshot.
+
+## Derived site metadata
+
+The page's derived-not-hardcoded rule extends to the SEO surface: the
+title and meta description, the Open Graph/Twitter tags and the JSON-LD
+Dataset node are all computed in `app/layout.tsx` at module scope from
+the committed `src/data/snapshot.json` at build time, through Next's
+static metadata path — no runtime code, no pipeline references, no
+numbers copied by hand, so the meta description can never go stale
+between the weekly rebuilds. The figures keep the page's own formats:
+`formatNumber` (en-GB) for counts and `formatPercent` (one decimal) for
+the electric share. The description sits in the 150-to-160-character
+band on the current snapshot; it floats a few characters per week with
+the number widths, which is expected.
+
+Two things are deliberately figure-free so they never go stale: the
+`public/images/og.png` Open Graph image (rebuilt from
+`design/og-image.html` with headless Chrome; it carries the product
+name and a stable tagline only) and its `og:image:alt`. The structured
+data has two nodes in the page head: a schema.org **Dataset** (creator
+Pixelate, provider RDW with the opendata.rdw.nl attribution, CC0
+license, the source repository via `sameAs`, `dateModified` from the
+snapshot's retrieval date) and a minimal **WebSite** node. The
+canonical URL (`https://fleet.pixelate.nl/`) and the shared site name
+live in `src/family.ts` as `siteUrl`/`siteName`, next to the existing
+launcher and source URLs, so the family's other product sites inherit
+the pattern. `app/robots.ts` and `app/sitemap.ts` resolve against the
+same constants.

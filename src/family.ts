@@ -6,6 +6,14 @@ export const FAMILY = {
   organization: "Pixelate BV",
   organizationUrl: "https://pixelate.nl",
   productName: "Dutch Fleet Electrification Explorer",
+  /** Short site name used for og:site_name. */
+  siteName: "fleet.pixelate.nl",
+  /**
+   * Canonical production URL of this product site. The canonical meta
+   * tag, the Open Graph URL and the crawl files all resolve against it,
+   * so a domain move is a one-place change here.
+   */
+  siteUrl: "https://fleet.pixelate.nl",
   /**
    * Launcher website of the Open Data Project, which gathers all the
    * open data projects.
