@@ -36,6 +36,77 @@ const RETRY_BACKOFF_MS = [1000, 4000];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/*
+  Progress logging: plain text, one line per step, to stdout — no
+  timestamps (the Actions runner adds those itself), no spinners or
+  cursor tricks, no new dependencies. Durations and HTTP statuses
+  only: the API key, request headers, and response payloads are never
+  logged.
+
+  A sequential step writes its start fragment immediately (no
+  newline) and completes the same line with the duration, so a local
+  terminal shows the step as running while a piped log (GitHub
+  Actions) receives exactly one line per step:
+  "snapshot: fuel cross-tab (8/13)... 2.1s". Queries launched in
+  parallel each log one full line when they settle.
+*/
+const STEP_TOTAL = 13; // 8 aggregate queries + vehicle count + Ferrari extract + group fetches + vehicle records + narration
+let stepIndex = 0;
+const stepStart = new Map();
+
+function stepLabel(name) {
+  stepIndex += 1;
+  return `snapshot: ${name} (${stepIndex}/${STEP_TOTAL})`;
+}
+
+function beginStep(name) {
+  const label = stepLabel(name);
+  stepStart.set(label, performance.now());
+  process.stdout.write(`${label}... `);
+  return label;
+}
+
+function endStep(label) {
+  const secs = ((performance.now() - stepStart.get(label)) / 1000).toFixed(1);
+  stepStart.delete(label);
+  process.stdout.write(`${secs}s\n`);
+}
+
+function failStep(label, error) {
+  const secs = ((performance.now() - stepStart.get(label)) / 1000).toFixed(1);
+  stepStart.delete(label);
+  process.stdout.write(`failed after ${secs}s: ${error.message}\n`);
+}
+
+async function runStep(name, fn) {
+  const label = beginStep(name);
+  try {
+    const result = await fn();
+    endStep(label);
+    return result;
+  } catch (error) {
+    failStep(label, error);
+    throw error;
+  }
+}
+
+function loggedQuery(name, dataset, soql) {
+  const label = stepLabel(name);
+  const start = performance.now();
+  return query(dataset, soql).then(
+    (result) => {
+      const secs = ((performance.now() - start) / 1000).toFixed(1);
+      console.log(`${label}... ${secs}s`);
+      return result;
+    },
+    (error) => {
+      const secs = ((performance.now() - start) / 1000).toFixed(1);
+      console.log(`${label}... failed after ${secs}s: ${error.message}`);
+      throw error;
+    }
+  );
+}
+
 async function fetchJsonWithRetry(url) {
   let lastError = null;
   for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt++) {
@@ -53,6 +124,16 @@ async function fetchJsonWithRetry(url) {
       return await response.json();
     } catch (error) {
       lastError = error;
+      // Retry warning: attempt number and status or timeout reason
+      // only, never headers or payloads.
+      if (attempt < REQUEST_RETRIES) {
+        const reason = controller.signal.aborted
+          ? `timeout after ${REQUEST_TIMEOUT_MS}ms`
+          : error.message;
+        console.log(
+          `snapshot: warning: attempt ${attempt + 1}/${REQUEST_RETRIES + 1} failed (${reason}); retrying in ${RETRY_BACKOFF_MS[attempt]}ms`
+        );
+      }
     } finally {
       clearTimeout(timer);
     }
@@ -246,19 +327,23 @@ async function main() {
     // runs anywhere in this pipeline.
     fuelSequenceRaw,
   ] = await Promise.all([
-    query(
+    loggedQuery(
+      "electric split aggregates",
       DATASET_FUEL,
       'select klasse_hybride_elektrisch_voertuig, count(1) as aantal where brandstof_omschrijving="Elektriciteit" group by klasse_hybride_elektrisch_voertuig order by aantal desc'
     ),
-    query(
+    loggedQuery(
+      "vehicle types",
       DATASET_BASE,
       "select voertuigsoort, count(1) as aantal group by voertuigsoort order by aantal desc"
     ),
-    query(
+    loggedQuery(
+      "registration years",
       DATASET_BASE,
       "select date_extract_y(datum_eerste_tenaamstelling_in_nederland_dt) as jaar, count(1) as aantal group by jaar order by jaar"
     ),
-    query(
+    loggedQuery(
+      "fuel totals",
       DATASET_FUEL,
       "select count(1) as rows, count(distinct kenteken) as vehicles"
     ),
@@ -266,7 +351,8 @@ async function main() {
     // date_extract_y requires the _dt column variant; avg() ignores nulls
     // on its own, so count(1) covers every car of the cohort while the
     // average covers only cars with a recorded massa_ledig_voertuig.
-    query(
+    loggedQuery(
+      "mass by year",
       DATASET_BASE,
       "select date_extract_y(datum_eerste_toelating_dt) as year, avg(massa_ledig_voertuig) as avg_mass, count(1) as n " +
         "where voertuigsoort='Personenauto' and datum_eerste_toelating_dt >= '1975-01-01' " +
@@ -276,7 +362,8 @@ async function main() {
     // IS NULL; avg(cilinderinhoud) and count(cilinderinhoud) skip cars
     // without a recorded value, so n_cc exposes how much of the cohort
     // the engine-size average actually covers.
-    query(
+    loggedQuery(
+      "engine size by year",
       DATASET_BASE,
       "select date_extract_y(datum_eerste_toelating_dt) as year, avg(cilinderinhoud) as avg_cc, count(cilinderinhoud) as n_cc, count(1) as n " +
         "where voertuigsoort='Personenauto' and datum_eerste_toelating_dt >= '1975-01-01' " +
@@ -285,22 +372,23 @@ async function main() {
     // Fuel cell coverage: distinct vehicles per recorded fuel over the
     // fuel cell hybrid classes. The class values are uppercase in the
     // register, so the where clause matches them literally.
-    query(
+    loggedQuery(
+      "fuel cell coverage",
       DATASET_FUEL,
       "select brandstof_omschrijving, count(distinct kenteken) as vehicles " +
         "where klasse_hybride_elektrisch_voertuig in ('NOVC-FCHV','OVC-FCHV') " +
         "group by brandstof_omschrijving order by vehicles desc"
     ),
-    query(
+    loggedQuery(
+      "fuel cross-tab",
       DATASET_FUEL,
       "select brandstof_omschrijving, brandstof_volgnummer, klasse_hybride_elektrisch_voertuig, count(1) as aantal " +
         "group by brandstof_omschrijving, brandstof_volgnummer, klasse_hybride_elektrisch_voertuig order by aantal desc"
     ),
   ]);
 
-  const vehicles = await query(
-    DATASET_BASE,
-    "select count(1) as vehicles"
+  const vehicles = await runStep("register vehicle count", () =>
+    query(DATASET_BASE, "select count(1) as vehicles")
   );
 
   /*
@@ -316,7 +404,9 @@ async function main() {
     common models; named variants (458 SPIDER, CALIFORNIA T) are
     separate handelsbenaming values.
   */
-  const ferrariRecords = await fetchFerrariRecords();
+  const ferrariRecords = await runStep("Ferrari extract", () =>
+    fetchFerrariRecords()
+  );
   const ferrariTractors = ferrariRecords.filter(
     (row) => row.voertuigsoort === "Land- of bosbouwtrekker"
   );
@@ -549,22 +639,29 @@ async function main() {
     }
   }
 
-  const groupKentekens = await Promise.all(
-    groups.map(({ fuel, volg }) => {
-      const fuelWhere =
-        fuel === NO_FUEL
-          ? "brandstof_omschrijving is null"
-          : `brandstof_omschrijving='${fuel}'`;
-      return fetchGroup(
-        DATASET_FUEL,
-        "select kenteken " +
-          `where ${fuelWhere} and brandstof_volgnummer='${volg}' ` +
-          "and klasse_hybride_elektrisch_voertuig is null"
-      );
-    })
+  const groupKentekens = await runStep(
+    `fleet-by-fuel group fetches (${groups.length} groups)`,
+    () =>
+      Promise.all(
+        groups.map(({ fuel, volg }) => {
+          const fuelWhere =
+            fuel === NO_FUEL
+              ? "brandstof_omschrijving is null"
+              : `brandstof_omschrijving='${fuel}'`;
+          return fetchGroup(
+            DATASET_FUEL,
+            "select kenteken " +
+              `where ${fuelWhere} and brandstof_volgnummer='${volg}' ` +
+              "and klasse_hybride_elektrisch_voertuig is null"
+          );
+        })
+      )
   );
   const kentekens = [...new Set(groupKentekens.flat().map((row) => row.kenteken))];
-  const vehicleRows = await fetchFuelRows(kentekens);
+  const vehicleRows = await runStep(
+    `fleet-by-fuel vehicle records (${kentekens.length} kentekens)`,
+    () => fetchFuelRows(kentekens)
+  );
 
   /*
     Local classification of every fetched vehicle. Classed hybrid
@@ -926,13 +1023,54 @@ async function main() {
   } catch {
     // First run: no snapshot to reuse a narration from.
   }
+  /*
+    Narration progress, per visual, derived from the same exported
+    context and signature functions narrate() uses (narrate() itself
+    is unchanged). A visual whose stored signature matches its current
+    context is kept without any API call; a stale or missing visual is
+    regenerated. The key is read from the environment only and is
+    never logged, and neither are the contexts (request payloads).
+  */
+  const hasNarrationKey = (process.env.MISTRAL_API_KEY ?? "").trim() !== "";
+  const narrationContexts = visualContexts(snapshot);
+  const storedSignatures = existingNarration?.signatures ?? {};
+  const keptVisuals = [];
+  const staleVisuals = [];
+  if (hasNarrationKey) {
+    for (const [key, context] of Object.entries(narrationContexts)) {
+      if (storedSignatures[key] === visualSignature(context)) {
+        keptVisuals.push(key);
+      } else {
+        staleVisuals.push(key);
+      }
+    }
+  }
+  const narrationStep = beginStep("narration");
   try {
     snapshot.narration = await narrate(snapshot, existingNarration);
+    endStep(narrationStep);
   } catch (error) {
+    failStep(narrationStep, error);
     // Fail-soft: an unexpected narration error must never fail the
     // snapshot; the existing narrations stay and this run adds none.
     console.error(`Narration skipped: ${error.message}`);
     snapshot.narration = existingNarration;
+  }
+  if (!hasNarrationKey) {
+    console.log("narration: no API key, step skipped (0 calls)");
+  } else {
+    for (const key of keptVisuals) {
+      console.log(`narration: ${key} signature match, kept (0 calls)`);
+    }
+    for (const key of staleVisuals) {
+      if (snapshot.narration?.visuals?.[key]) {
+        console.log(`narration: ${key} stale, generating (call 1)... validated`);
+      } else {
+        console.log(
+          `narration: ${key} stale, generating (call 1)... rejected, retried (call 2)... hidden this run`
+        );
+      }
+    }
   }
   /*
     Storage shape of the narrations: each visual's text is stored
@@ -946,7 +1084,7 @@ async function main() {
     visuals whose contexts changed and makes no call for the rest.
   */
   if (snapshot.narration) {
-    const contexts = visualContexts(snapshot);
+    const contexts = narrationContexts;
     const visuals = {};
     const signatures = {};
     for (const [key, context] of Object.entries(contexts)) {
