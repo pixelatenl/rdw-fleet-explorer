@@ -11,6 +11,7 @@ import {
   snapshot,
   electricVehicles,
   batteryElectric,
+  fuelCellVehicles,
   formatNumber,
   formatPercent,
 } from "@/data/snapshot";
@@ -260,17 +261,15 @@ function fuelCellHybridCount(): number {
 }
 
 /**
- * The fuel cell coverage fact, derived from snapshot.fuelCellByFuel: the
- * total over all recorded fuels plus the hydrogen and petrol entries.
- * Returns null when there is nothing to report, so callers omit the
- * sentence rather than print an undefined value.
+ * The fuel cell coverage fact, derived from snapshot.fuelCellByFuel:
+ * the distinct vehicle count of the class (see fuelCellVehicles in
+ * src/data/snapshot.ts) plus the hydrogen and petrol entries, which
+ * stay what they are — record counts, stated as records, never summed
+ * into vehicles. Returns null when there is nothing to report, so
+ * callers omit the sentence rather than print an undefined value.
  */
 function fuelCellCoverageFact(): string | null {
-  const fuelCellTotal = snapshot.fuelCellByFuel.reduce(
-    (sum, entry) => sum + entry.count,
-    0,
-  );
-  if (fuelCellTotal <= 0) return null;
+  if (fuelCellVehicles <= 0) return null;
   const hydrogen = snapshot.fuelCellByFuel.find(
     (entry) => entry.key === "waterstof",
   );
@@ -278,10 +277,10 @@ function fuelCellCoverageFact(): string | null {
     (entry) => entry.key === "benzine",
   );
   const clauses: string[] = [];
-  if (hydrogen) clauses.push(`${formatNumber(hydrogen.count)} list hydrogen`);
-  if (petrol) clauses.push(`${formatNumber(petrol.count)} list petrol`);
+  if (hydrogen) clauses.push(`hydrogen for ${formatNumber(hydrogen.count)}`);
+  if (petrol) clauses.push(`petrol for ${formatNumber(petrol.count)}`);
   if (clauses.length === 0) return null;
-  return `Across all ${formatNumber(fuelCellTotal)} fuel cell vehicles, ${clauses.join(" and ")} as a fuel.`;
+  return `The register books ${formatNumber(fuelCellVehicles)} vehicles with a fuel cell class; alongside electricity, their fuel records list ${clauses.join(" and ")}, an artefact of the register's young fuel cell bookkeeping.`;
 }
 
 /**

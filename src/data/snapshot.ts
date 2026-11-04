@@ -135,6 +135,19 @@ export const plugInHybrids =
 export const fullHybrids =
   snapshot.electricSplit.find((entry) => entry.key === "novc-hev")?.count ?? 0;
 
+/**
+ * Vehicles with a fuel cell class, on the distinct-kenteken basis. The
+ * fuel cell coverage entries (fuelCellByFuel) are per-fuel record
+ * counts — a fuel cell vehicle books several fuel records — so they
+ * cannot be summed into a vehicle count. Every classed vehicle books
+ * exactly one Elektriciteit record (verified against the register; see
+ * docs/data-notes.md), so the coverage's Elektriciteit entry equals the
+ * distinct kenteken count of the class.
+ */
+export const fuelCellVehicles =
+  snapshot.fuelCellByFuel.find((entry) => entry.key === "elektriciteit")
+    ?.count ?? 0;
+
 export const electricShareOfFuelVehicles =
   electricVehicles / snapshot.totals.vehiclesWithFuelData;
 

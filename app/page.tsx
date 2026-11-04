@@ -11,7 +11,7 @@ import { VehicleTypesChart } from "@/components/vehicle-types-chart";
 import { RegistrationYearChart } from "@/components/registration-year-chart";
 import { HeavyTurnChart } from "@/components/heavy-turn-chart";
 import { AiInsight } from "@/components/ai-insight";
-import { snapshot, electricVehicles, formatNumber, formatDate } from "@/data/snapshot";
+import { snapshot, electricVehicles, fuelCellVehicles, formatNumber, formatDate } from "@/data/snapshot";
 
 export default function Home() {
   const latestCohort =
@@ -21,13 +21,10 @@ export default function Home() {
   // block renders only when its narration exists.
   const insights = snapshot.narration?.visuals;
 
-  // Fuel cell coverage, derived from the snapshot: the total over all
-  // recorded fuels, plus the hydrogen and petrol entries. The sentence
-  // is omitted when an expected entry is missing.
-  const fuelCellTotal = snapshot.fuelCellByFuel.reduce(
-    (sum, entry) => sum + entry.count,
-    0,
-  );
+  // Fuel cell coverage, derived from the snapshot: the distinct vehicle
+  // count of the class plus the hydrogen and petrol entries, which are
+  // record counts and are stated as records in the sentence below. The
+  // sentence is omitted when an expected entry is missing.
   const fuelCellHydrogen = snapshot.fuelCellByFuel.find(
     (entry) => entry.key === "waterstof",
   );
@@ -175,8 +172,8 @@ export default function Home() {
               of its fuels, grouped by its recorded hybrid class.{" "}
               {fuelCellHydrogen &&
                 fuelCellPetrol &&
-                fuelCellTotal > 0 &&
-                `The fuel cell tile counts only fuel cell vehicles that list electricity; the register holds ${formatNumber(fuelCellTotal)} vehicles with a fuel cell class, of which ${formatNumber(fuelCellHydrogen.count)} list hydrogen and ${formatNumber(fuelCellPetrol.count)} petrol.`}
+                fuelCellVehicles > 0 &&
+                `The fuel cell tile counts only fuel cell vehicles that list electricity, currently all ${formatNumber(fuelCellVehicles)} vehicles the register books with the class; alongside electricity, their fuel records list hydrogen for ${formatNumber(fuelCellHydrogen.count)} and petrol for ${formatNumber(fuelCellPetrol.count)}, an artefact of the register's young fuel cell bookkeeping.`}
             </CardDescription>
           </CardHeader>
           <CardContent>
