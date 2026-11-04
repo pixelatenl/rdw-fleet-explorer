@@ -134,40 +134,49 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }}
       />
       <section className="mb-12">
-        <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
-          Dutch open data
-        </p>
         {/*
-          Editorial cover. The question is the page's display heading,
-          shouted in capitals: fluid clamp sizing (about 2.4rem at a
-          390px viewport rising to about 4.75rem at desktop, capitals
-          are wider so the floor sits lower than the mixed-case cut),
-          the heaviest weight the system sans stack offers, tight
-          leading and tracking, and an em-based max-width that keeps
-          the two-line shape at every width — the line breaks after
-          "IS THE" or "IS" by natural wrapping, never a hard <br>. The
-          accented words take the theme-adaptive battery-electric
-          orange (--drivetrain-bev: 3.4 to 1 on the light canvas, 5.3
-          to 1 on the dark), the family's header language. The deck
-          steps up to text-xl on a ~62-character measure with more air
-          above the first chart; every word of the copy stays verbatim.
+          Editorial cover, framed in the site's card so the voice of
+          the page opens on the same surface the charts live on. The
+          question is the display heading, shouted in capitals: fluid
+          clamp sizing (about 2.25rem at a 390px viewport rising to
+          about 4.75rem at desktop — capitals are wider and the card's
+          frame narrows the measure, so the floor sits lower than the
+          mixed-case cut), the heaviest weight the system sans stack
+          offers, tight leading and tracking, and an em-based max-width
+          that keeps the two-line shape at every width — the line breaks
+          after "IS THE" or "IS" by natural wrapping, never a hard
+          <br>. The accented words take the theme-adaptive
+          battery-electric orange (--drivetrain-bev: 3.4 to 1 on the
+          light canvas, 5.3 to 1 on the dark), the family's header
+          language. The deck steps up to text-xl on a ~62-character
+          measure with air above the first chart; every word of the copy
+          stays verbatim.
         */}
-        <h1 className="max-w-[11em] text-[clamp(2.4rem,1.6rem+3.28vw,4.75rem)] font-black uppercase leading-[1.08] tracking-tight">
-          How <span className="text-(--drivetrain-bev)">electric</span> is
-          the{" "}
-          <span className="text-(--drivetrain-bev)">Dutch</span> fleet?
-        </h1>
-        <p className="mt-6 max-w-[62ch] text-xl text-muted-foreground">
-          Live aggregates from the complete RDW vehicle register, more than{" "}
-          {formatNumber(snapshot.totals.vehicles)} vehicles, of which{" "}
-          {formatNumber(snapshot.totals.vehiclesWithFuelData)} carry fuel
-          data, refreshed weekly and rendered straight into this page.
-        </p>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Data received on {formatDate(snapshot.retrievedAt)}.
-        </p>
+        <Card className="py-6 sm:py-10">
+          <CardContent className="flex flex-col px-4 sm:px-12">
+            <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
+              Dutch open data
+            </p>
+            <h1 className="max-w-[11em] text-[clamp(2.25rem,1.4rem+3.49vw,4.75rem)] font-black uppercase leading-[1.08] tracking-tight">
+              How <span className="text-(--drivetrain-bev)">electric</span>{" "}
+              is the{" "}
+              <span className="text-(--drivetrain-bev)">Dutch</span> fleet?
+            </h1>
+            <p className="mt-6 max-w-[62ch] text-xl text-muted-foreground">
+              Live aggregates from the complete RDW vehicle register, more
+              than{" "}
+              {formatNumber(snapshot.totals.vehicles)} vehicles, of which{" "}
+              {formatNumber(snapshot.totals.vehiclesWithFuelData)} carry
+              fuel data, refreshed weekly and rendered straight into this
+              page.
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Data received on {formatDate(snapshot.retrievedAt)}.
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="mt-12">
+        <div className="mt-8">
           <FleetTreemap />
         </div>
         {insights?.treemap && (
