@@ -63,10 +63,11 @@ export interface ChartTooltipProps {
  * a tooltip or positioning library. It appears on hover, keyboard focus
  * and tap, floats above the trigger (flipping below when the trigger sits
  * near the top of the viewport) and is clamped to the viewport edges so
- * it never overflows on narrow screens. All positioning happens in the
- * browser, only after user interaction, so server rendering and the
- * static export are unaffected. The popover tokens make it follow the
- * active theme, including while it is visible.
+ * it never overflows on narrow screens. Long context sentences wrap
+ * instead of stretching the popover: its width caps at 16rem. All
+ * positioning happens in the browser, only after user interaction, so
+ * server rendering and the static export are unaffected. The popover
+ * tokens make it follow the active theme, including while it is visible.
  */
 export function ChartTooltip({
   label,
@@ -165,7 +166,7 @@ export function ChartTooltip({
           <div
             ref={tooltipRef}
             role="tooltip"
-            className="pointer-events-none fixed top-0 left-0 z-60 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md"
+            className="pointer-events-none fixed top-0 left-0 z-60 max-w-[16rem] rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs leading-snug text-popover-foreground shadow-md"
             style={{
               transform: position.below
                 ? `translate3d(${position.x}px, ${position.y}px, 0) translate(-50%, 0)`

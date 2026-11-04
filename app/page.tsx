@@ -175,7 +175,7 @@ export default function Home() {
 
         <div className="mt-12">
           <Card>
-            <CardContent className="px-4 sm:px-6">
+            <CardContent>
               <FleetTreemap />
               {insights?.treemap && <AiInsight text={insights.treemap} />}
             </CardContent>

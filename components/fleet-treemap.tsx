@@ -23,7 +23,7 @@ import {
 /** Nominal ratio units for the pre-measurement (server) layout, 16:9. */
 const REFERENCE_WIDTH = 1600;
 const REFERENCE_HEIGHT = 900;
-/** The smallest tile (fuel cell hybrid) stays visible at this size. */
+/** The smallest tile stays visible and focusable at this size. */
 const MIN_TILE_PX = 8;
 /** Spacing between tiles; each tile is inset by half of this per side. */
 const TILE_GAP_PX = 6;
@@ -94,7 +94,7 @@ const CHIP_CLEAR_PX = 8 + 56 + 4;
  * instead of dropping to a stacked wrap below the wide breakpoint: at
  * the wide anchor the canvas keeps the wide 16:9, and as the viewport
  * narrows the canvas grows taller, reaching 1.2 — square plus a step,
- * so the squarified layout lays the four electrified tiles side by
+ * so the squarified layout lays the four drivetrain tiles side by
  * side in a strip tall enough for their labels and fitted counts — at
  * the narrow anchor, and holding there below it. Both anchors are
  * content-box widths of this figure in its card frame — the page
@@ -153,7 +153,14 @@ interface FleetTile extends TreemapInputItem {
   icons: IconName[];
 }
 
-/** The five drivetrain tiles, every count derived from the snapshot. */
+/**
+ * The four drivetrain tiles, every count derived from the snapshot.
+ * Fuel cell hybrids count as battery electric in this treemap — a fuel
+ * cell vehicle is a full battery vehicle — so the battery electric tile
+ * carries the sum of the two counts from snapshot.electricSplit; the
+ * electric-drive detail chart below splits them back into their own
+ * segment.
+ */
 function buildTiles(): FleetTile[] {
   const withFuelData = snapshot.totals.vehiclesWithFuelData;
   const splitByKey = new Map(
@@ -176,9 +183,10 @@ function buildTiles(): FleetTile[] {
       image: "/images/gas-station-onno-blaauw.jpg",
     },
     {
+      // The merged tile: bev plus fchv counts, per the doc above.
       key: "bev",
       label: "Battery electric",
-      count: countOf("bev"),
+      count: countOf("bev") + countOf("fchv"),
       colorToken: "var(--drivetrain-bev)",
       inkToken: "var(--fleet-ink-bev)",
       chipToken: "var(--fleet-chip-bev)",
@@ -207,16 +215,6 @@ function buildTiles(): FleetTile[] {
       iconToken: "var(--fleet-icon-ovc-hev)",
       icons: ["fuel", "zap"],
       image: "/images/phev-suv-haberdoedas.jpg",
-    },
-    {
-      key: "fchv",
-      label: "Fuel cell hybrid",
-      count: countOf("fchv"),
-      colorToken: "var(--drivetrain-fchv)",
-      inkToken: "var(--fleet-ink-fchv)",
-      chipToken: "var(--fleet-chip-fchv)",
-      iconToken: "var(--fleet-icon-fchv)",
-      icons: ["zap"],
     },
   ];
 }
@@ -254,6 +252,13 @@ function fittedCountStyle(
   };
 }
 
+/** The fuel cell hybrid count, derived from snapshot.electricSplit. */
+function fuelCellHybridCount(): number {
+  return (
+    snapshot.electricSplit.find((entry) => entry.key === "fchv")?.count ?? 0
+  );
+}
+
 /**
  * The fuel cell coverage fact, derived from snapshot.fuelCellByFuel: the
  * total over all recorded fuels plus the hydrogen and petrol entries.
@@ -280,20 +285,33 @@ function fuelCellCoverageFact(): string | null {
 }
 
 /**
- * Context sentence for a tile's tooltip, derived from the snapshot at
+ * Context sentences for a tile's tooltip, derived from the snapshot at
  * render time. Returns null when the tile has nothing beyond its own
- * figures.
+ * figures. The battery electric tile carries the fuel cell composition
+ * of its merged count and the fuel record breakdown of the fuel cell
+ * class alongside its share of the electric drive.
  */
 function tileContext(tile: {
   key: string;
   label: string;
   count: number;
 }): string | null {
-  if (tile.key === "fchv") {
-    return fuelCellCoverageFact();
-  }
   if (tile.key === "no-electric") {
     return null;
+  }
+  if (tile.key === "bev") {
+    const sentences = [
+      `${formatPercent(tile.count / electricVehicles)} of the ${formatNumber(electricVehicles)} vehicles with electric drive.`,
+    ];
+    const fuelCell = fuelCellHybridCount();
+    if (fuelCell > 0) {
+      sentences.push(
+        `Of the ${formatNumber(tile.count)}, ${formatNumber(fuelCell)} (${formatPercent(fuelCell / tile.count)}) are fuel cell hybrids, counted as battery electric here.`,
+      );
+      const coverage = fuelCellCoverageFact();
+      if (coverage) sentences.push(coverage);
+    }
+    return sentences.join(" ");
   }
   return `${formatPercent(tile.count / electricVehicles)} of the ${formatNumber(electricVehicles)} vehicles with electric drive.`;
 }
@@ -401,7 +419,12 @@ export function FleetTreemap() {
     measured ? (canvasHeight as number) : REFERENCE_HEIGHT,
   );
 
-  const summary = `Fleet by drivetrain: of ${formatNumber(withFuelData)} vehicles with fuel data, ${formatNumber(noElectricCount)} (${formatPercent(noElectricCount / withFuelData)}) have no electric drive and ${formatNumber(batteryElectric)} (${formatPercent(batteryElectric / withFuelData)}) are battery electric.`;
+  // Battery electric as this treemap presents it: bev plus the fuel
+  // cell hybrids folded in, so the figure's aria-label states the
+  // same count the tile shows.
+  const mergedBatteryElectric = batteryElectric + fuelCellHybridCount();
+
+  const summary = `Fleet by drivetrain: of ${formatNumber(withFuelData)} vehicles with fuel data, ${formatNumber(noElectricCount)} (${formatPercent(noElectricCount / withFuelData)}) have no electric drive and ${formatNumber(mergedBatteryElectric)} (${formatPercent(mergedBatteryElectric / withFuelData)}) are battery electric, a single figure that includes the ${formatNumber(fuelCellHybridCount())} fuel cell hybrids.`;
 
   return (
     <figure>
@@ -411,7 +434,9 @@ export function FleetTreemap() {
           {formatNumber(withFuelData)} with fuel data.
         </span>
         <span className="mt-1 block text-base leading-relaxed text-muted-foreground sm:text-lg">
-          Hybrid drivetrains are grouped by their recorded hybrid class.
+          Hybrid drivetrains are grouped by their recorded hybrid class;
+          fuel cell hybrids count as battery electric here, and the
+          electric-drive chart below splits them out.
         </span>
       </figcaption>
       <div
@@ -491,8 +516,8 @@ export function FleetTreemap() {
             ? {
                 // The clamp keeps a min-size tile inside the canvas
                 // when the squarify geometry parks its sub-pixel strip
-                // past the right or bottom edge — the fuel cell share
-                // is honest, but its tile must stay visible and
+                // past the right or bottom edge — the share is
+                // honest, but the tile must stay visible and
                 // focusable.
                 left: Math.min(rect.x, size.width - MIN_TILE_PX - 2 * TILE_INSET_PX),
                 top: Math.min(rect.y, (canvasHeight as number) - MIN_TILE_PX - 2 * TILE_INSET_PX),
