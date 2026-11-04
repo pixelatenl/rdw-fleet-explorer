@@ -58,13 +58,10 @@ export function visualContexts(snapshot) {
     ...snapshot.electricSplit,
   ];
 
-  const fuelLines = snapshot.fuelRegistrations.map((entry, index) => {
-    const shareOfFuel = share(entry.count, totals.fuelRegistrations);
-    // The first three fuels carry the chart's story; the tail is a count.
-    return index < 3
-      ? `${entry.label}: ${format(entry.count)} registrations (${shareOfFuel} of registrations)`
-      : `${entry.label}: ${format(entry.count)} registrations`;
-  });
+  const fleetByFuelLines = snapshot.fleetByFuel.map(
+    (entry) =>
+      `${entry.label}: ${format(entry.count)} vehicles (${share(entry.count, withFuel)} of vehicles with fuel data)`,
+  );
 
   const typeLines = snapshot.vehicleTypes.map(
     (entry) =>
@@ -152,12 +149,13 @@ export function visualContexts(snapshot) {
       `Total with electric drive: ${format(electricTotal)} vehicles (${share(electricTotal, withFuel)} of vehicles with fuel data).`,
       "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'.",
     ].join("\n"),
-    fuelRegistrations: [
-      "Title: Fuel registrations",
-      "Shows: bars counting registrations per recorded fuel; hybrid vehicles carry one registration per fuel, so the registration total exceeds the vehicle count. The electric bar counts vehicles, the only fuel that is never double counted.",
-      `Total fuel registrations: ${format(totals.fuelRegistrations)} across ${format(withFuel)} vehicles with fuel data.`,
-      "Guidance: when the insight mentions the registration total, it must also note that hybrids carry one registration per fuel, which is why the total exceeds the vehicle count.",
-      ...fuelLines,
+    fleetByFuel: [
+      "Title: The fleet by fuel",
+      "Shows: bars counting the vehicles with fuel data by fuel, every vehicle in exactly one category; the other category holds fuel cell hybrids, hydrogen, CNG, alcohol, and LNG vehicles, plus a small residue of incomplete records.",
+      `Population: the chart covers the ${format(withFuel)} vehicles with fuel data, and every share is a share of those vehicles. As register background only: the raw fuel register holds one registration per fuel, ${format(totals.fuelRegistrations)} records covering the ${format(withFuel)} vehicles.`,
+      "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'. A hybrid is a hybrid: it is counted once, never also as petrol or diesel.",
+      ...fleetByFuelLines,
+      `Total: ${format(withFuel)} vehicles with fuel data.`,
     ].join("\n"),
     vehicleTypes: [
       "Title: The register by vehicle type",

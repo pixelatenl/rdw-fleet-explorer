@@ -45,7 +45,7 @@ const { narration: _narration, ...data } = snapshot;
 
 const KEYS = [
   "treemap",
-  "fuelRegistrations",
+  "fleetByFuel",
   "vehicleTypes",
   "heavyTurn",
   "entryYears",

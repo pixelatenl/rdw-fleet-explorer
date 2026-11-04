@@ -2,45 +2,38 @@
 
 import {
   snapshot,
-  fuelRegistrationsTotal,
   formatNumber,
   formatPercent,
 } from "@/data/snapshot";
 
-/** Chart token index used for each fuel, matching the legend colors. */
+/** Chart token index used for each fuel category, matching the legend colors. */
 const tokenByKey: Record<string, number> = {
-  benzine: 3,
-  elektriciteit: 1,
+  petrol: 3,
   diesel: 4,
+  "battery-electric": 1,
+  "full-hybrid": 5,
+  "plug-in-hybrid": 2,
   lpg: 5,
   other: 2,
 };
 
 /**
- * Horizontal bar chart of fuel registrations in the RDW register.
- * Multi-fuel vehicles (hybrids) count once per fuel, which is stated
- * in the card copy. CSS bars with token-derived gradients; every
- * figure is printed beside its bar, and hovering a row highlights
- * its bar with the brand accent.
+ * Horizontal bar chart of the fleet by fuel. Every vehicle with fuel
+ * data counts once, in exactly one mutually exclusive category, and
+ * every share is a share of the vehicles with fuel data. CSS bars
+ * with token-derived gradients; every figure is printed beside its
+ * bar, and hovering a row highlights its bar with the brand accent.
  */
-export function FuelRegistrationsChart() {
-  const rows = [...snapshot.fuelRegistrations]
-    .filter((entry) => entry.key !== "onbekend")
+export function FleetByFuelChart() {
+  const withFuelData = snapshot.totals.vehiclesWithFuelData;
+  const rows = [...snapshot.fleetByFuel]
     .map((entry) => ({ ...entry }))
     .sort((a, b) => b.count - a.count);
 
-  const otherCount = rows.slice(4).reduce((sum, row) => sum + row.count, 0);
-  const display = [
-    ...rows.slice(0, 4).map((row) => ({ ...row })),
-    ...(otherCount > 0
-      ? [{ key: "other", label: "Other", count: otherCount }]
-      : []),
-  ];
-
   return (
     <ul className="flex flex-col gap-2.5">
-      {display.map((row) => {
-        const share = row.count / fuelRegistrationsTotal;
+      {rows.map((row) => {
+        const share = row.count / withFuelData;
         return (
           <li key={row.key} className="group text-sm">
             <div className="mb-1 flex items-baseline justify-between gap-2">

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { FleetTreemap } from "@/components/fleet-treemap";
 import { ElectricSplitChart } from "@/components/electric-split-chart";
-import { FuelRegistrationsChart } from "@/components/fuel-registrations-chart";
+import { FleetByFuelChart } from "@/components/fleet-by-fuel-chart";
 import { VehicleTypesChart } from "@/components/vehicle-types-chart";
 import { RegistrationYearChart } from "@/components/registration-year-chart";
 import { HeavyTurnChart } from "@/components/heavy-turn-chart";
@@ -185,17 +185,22 @@ export default function Home() {
       <section className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Fuel registrations</CardTitle>
+            <CardTitle className="text-lg">The fleet by fuel</CardTitle>
             <CardDescription>
-              Hybrid vehicles carry one registration per fuel, so petrol and
-              electric both include hybrids. The electric bar is vehicles,
-              the only fuel that is never double counted.
+              The {formatNumber(snapshot.totals.vehiclesWithFuelData)}{" "}
+              vehicles with fuel data, each counted once in exactly one
+              fuel category.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <FuelRegistrationsChart />
-            {insights?.fuelRegistrations && (
-              <AiInsight text={insights.fuelRegistrations} />
+            <FleetByFuelChart />
+            <p className="mt-4 text-sm text-muted-foreground">
+              Every vehicle counted once. A hybrid is a hybrid: it is not
+              also counted as petrol or diesel. LPG conversions are
+              counted once as LPG.
+            </p>
+            {insights?.fleetByFuel && (
+              <AiInsight text={insights.fleetByFuel} />
             )}
           </CardContent>
         </Card>
