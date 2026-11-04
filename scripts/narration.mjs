@@ -7,10 +7,11 @@
   model only narrates that context, and the site renders the narration
   verbatim as static text. The model never calculates: every number in
   the returned text is validated against the context figures, and a
-  narration that introduces an unknown figure is retried once and then
-  dropped for this run. No API call happens from the client, ever; the
-  key is read from process.env.MISTRAL_API_KEY only, never logged and
-  never written anywhere.
+  prose-ratio phrasing ("one in twelve") fails the same validation, so
+  a narration that introduces an unknown figure or a prose ratio is
+  retried once and then dropped for this run. No API call happens from
+  the client, ever; the key is read from process.env.MISTRAL_API_KEY
+  only, never logged and never written anywhere.
 */
 
 import { createHash } from "node:crypto";
@@ -36,6 +37,16 @@ const SYSTEM_PROMPT = [
 const format = (value) => new Intl.NumberFormat("en-GB").format(value);
 const share = (part, whole) =>
   whole > 0 ? `${((part / whole) * 100).toFixed(1)}%` : "0%";
+
+/*
+  One guidance line shared by every visual context: shares and
+  comparisons are stated as percentages with numerals taken from the
+  context figures, never as prose ratios. Because the line is part of
+  each context, it moves every visual's signature, and the prose-ratio
+  lint in validateNarration enforces it on the returned text.
+*/
+const NUMERALS_GUIDANCE =
+  "Guidance: state every share and comparison as a percentage with a numeral taken from the context figures (for example '17.0%'); prose ratios such as 'one in twelve', 'six out of ten', or 'two in five' are not permitted.";
 
 /*
   Deterministic context per visual: the chart's title, one line of what
@@ -93,6 +104,7 @@ export function visualContexts(snapshot) {
       `The ${last.year} cohort holds ${format(last.count)} cars, of which ${format(last.count - latestEngine.withEngine)} have no engine size to measure.`,
     );
   }
+  heavyTurnLines.push(NUMERALS_GUIDANCE);
 
   // The entry-year chart starts at 1970, mirroring its FROM_YEAR.
   const entryRows = snapshot.registrationYears.filter(
@@ -135,6 +147,7 @@ export function visualContexts(snapshot) {
     `Largest year: ${largestEntry.year} with ${format(largestEntry.count)} vehicles.`,
     `Half of the fleet entered in ${medianEntryYear} or later.`,
     `${format(snapshot.registrationYearsUnknown)} vehicles have no registration year recorded.`,
+    NUMERALS_GUIDANCE,
   ];
 
   return {
@@ -148,6 +161,7 @@ export function visualContexts(snapshot) {
       ),
       `Total with electric drive: ${format(electricTotal)} vehicles (${share(electricTotal, withFuel)} of vehicles with fuel data).`,
       "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'.",
+      NUMERALS_GUIDANCE,
     ].join("\n"),
     fleetByFuel: [
       "Title: The fleet by fuel",
@@ -156,6 +170,7 @@ export function visualContexts(snapshot) {
       "Guidance: phrase every share as 'of vehicles with fuel data', never 'of the fleet' or 'of the register'. A hybrid is a hybrid: it is counted once, never also as petrol or diesel.",
       ...fleetByFuelLines,
       `Total: ${format(withFuel)} vehicles with fuel data.`,
+      NUMERALS_GUIDANCE,
     ].join("\n"),
     vehicleTypes: [
       "Title: The register by vehicle type",
@@ -163,6 +178,7 @@ export function visualContexts(snapshot) {
       `Population: every share on this chart is a share of the full register of ${format(totals.vehicles)} vehicles, which spans every vehicle type, mopeds, trailers, tractors and vans included.`,
       `Register total: ${format(totals.vehicles)} vehicles.`,
       ...typeLines,
+      NUMERALS_GUIDANCE,
     ].join("\n"),
     // The heavy turn has no context without cohorts, so it is left out
     // and gets no narration rather than narrating an empty chart.
@@ -186,8 +202,21 @@ export function extractNumbers(text) {
   );
 }
 
+/*
+  Prose-ratio lint. A share phrased as a prose ratio ("one in twelve",
+  "six out of ten", "half of all") carries no numerals, so the figure
+  check below cannot see it and could not reject it. Any of these
+  patterns, case-insensitive, fails validation and the narration is
+  treated like one with a hallucinated number: one retry, then the
+  block is hidden. Percentages with numerals ("17.0%") remain the
+  sanctioned form.
+*/
+const PROSE_RATIO_PATTERN =
+  /\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+in\b|\bin\s+a\s+hundred\b|\bout\s+of\s+ten\b|\bout\s+of\s+every\b|\bhalf\s+of\s+all\b/i;
+
 export function validateNarration(text, context) {
   if (!text) return false;
+  if (PROSE_RATIO_PATTERN.test(text)) return false;
   const allowed = new Set(extractNumbers(context));
   return extractNumbers(text).every((figure) => allowed.has(figure));
 }
