@@ -63,7 +63,7 @@ const COUNT_TIER_LINE_PX: Record<string, number> = {
 };
 /**
  * Rough tabular-digit width of a count at black weight with its
- *  custom tight tracking (-0.07em) subtracted, in em: digits wide,
+ *  custom tight tracking (-0.06em) subtracted, in em: digits wide,
  *  dots narrow. The measure stays above the rendered width, keeping
  *  the no-clipping guarantee while fitted counts earn pixels back.
  */
@@ -597,7 +597,7 @@ export function FleetTreemap() {
                       </p>
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                         <p
-                          className={`font-black tracking-[-0.07em] tabular-nums ${tierClass}`}
+                          className={`font-black tracking-[-0.06em] tabular-nums ${tierClass}`}
                           style={countStyle}
                         >
                           {formatNumber(
