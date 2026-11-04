@@ -10,7 +10,7 @@ import { snapshot } from "@/data/snapshot";
  */
 export function FamilyFooter({ extra }: { extra?: React.ReactNode }) {
   return (
-    <footer className="border-t border-border">
+    <footer className="border-t border-border bg-background">
       <div className="mx-auto flex max-w-[1536px] flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="text-sm text-muted-foreground">
           <p>

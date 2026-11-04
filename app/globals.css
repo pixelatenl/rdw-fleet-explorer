@@ -114,18 +114,18 @@
 
   /*
     Dark splash canvas: the launcher's dark-first brand gradient, its
-    exact stops (#48B9D1 over #0F353D into #051214). The bright teal
-    start sits behind the framed hero card at the top of the page; the
-    middle and terminal tones carry the rest of the viewport, so tiles
-    and text that rest on the theme's flat --background during their
-    audits keep those numbers in the zones where they scroll into
-    view. Every element that sits directly on the canvas keeps its
-    ratio: the footer and its links live in the terminal zone
-    (#051214, muted links 6.8 to 1), the outlined AI-insight border in
-    the middle zone (#0F353D, as audited), the light theme's near-
-    identical tints change nothing measurably.
+    exact three stops (#48B9D1 over #0F353D into #051214), with the
+    ramp mirrored to run bottom-right-up-left (345deg instead of the
+    launcher's 165deg). The unframed editorial cover sits directly on
+    this canvas at the top of the page — the launcher places its own
+    headline over the splash's dark zones for the same reason — so
+    the terminal tone #051214 owns the text-bearing top half of the
+    viewport while the bright teal gathers as an accent in the
+    bottom-right corner. The footer, the one text block near that
+    corner, carries its own solid background. The light theme's
+    near-identical top-light tints keep the original direction.
   */
-  --body-splash: linear-gradient(165deg, #48b9d1 0%, #0f353d 52%, #051214 100%);
+  --body-splash: linear-gradient(345deg, #48b9d1 0%, #0f353d 48%, #051214 100%);
 }
 
 /*
