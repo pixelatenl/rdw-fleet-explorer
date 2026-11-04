@@ -29,7 +29,7 @@ const MIN_TILE_PX = 8;
 const TILE_GAP_PX = 6;
 const TILE_INSET_PX = TILE_GAP_PX / 2;
 /** Tiles smaller than this in either dimension hide their text layer. */
-const MIN_TEXT_WIDTH_PX = 84;
+const MIN_TEXT_WIDTH_PX = 80;
 const MIN_TEXT_HEIGHT_PX = 52;
 /** Tiles smaller than this in either dimension hide their icon layer. */
 const MIN_ICON_WIDTH_PX = 48;
@@ -37,23 +37,70 @@ const MIN_ICON_HEIGHT_PX = 40;
 /** Energy icon size, in px. */
 const ICON_PX = 40;
 /**
+ * Count typography. A count's font size is bounded by its share tier,
+ * exactly the classes the wide layout always used, but a count that
+ * would then run wider than its tile shrinks to fit it — the squarify
+ * layout puts narrow tiles side by side, so counts must respect the
+ * tile's actual width instead of clipping the number's tail. Below sm
+ * the text inset is p-1 and from sm p-2, both at most 8px per side;
+ * the only tile that is narrow and spacious (the no-electric mass on
+ * a phone, p-3) budgets a full 24px. Tier line heights come from the
+ * Tailwind classes; fitted counts render at a 1.3 line ratio.
+ */
+const COUNT_TIER_PX: Record<string, number> = {
+  "text-6xl": 60,
+  "text-4xl": 36,
+  "text-3xl": 30,
+  "text-2xl": 24,
+};
+const COUNT_TIER_LINE_PX: Record<string, number> = {
+  "text-6xl": 60,
+  "text-4xl": 40,
+  "text-3xl": 36,
+  "text-2xl": 32,
+};
+/** Rough tabular-digit width of a count, in em: digits wide, dots narrow. */
+const COUNT_DIGIT_EM = 0.62;
+const COUNT_SEPARATOR_EM = 0.36;
+/** Per-side horizontal room a fitted count keeps inside its tile. */
+const COUNT_INSET_PX = 8;
+const SPACIOUS_COUNT_INSET_PX = 12;
+/** Fitted line ratio, between the tier classes' own ratios. */
+const FITTED_COUNT_LINE_RATIO = 1.3;
+/** Smallest fitted count, in px, whatever the geometry says. */
+const MIN_FITTED_COUNT_PX = 12;
+/**
+ * The share pill renders only when the tile is tall enough to stack
+ * label, count and wrapped pill without crowding; below this the
+ * percentage stays in the tooltip and the summary aria-label.
+ */
+const MIN_PILL_TILE_HEIGHT_PX = 100;
+/**
+ * The icon chip renders only when the tile is tall enough for the
+ * chip block (its anchor offset plus the chip and a margin) above
+ * the bottom-anchored text block, so the two can share a tile.
+ */
+const CHIP_CLEAR_PX = 8 + 56 + 4;
+/**
  * Adaptive canvas anchors. The squarified layout runs at every width,
  * so the container's aspect ratio interpolates linearly between these
  * instead of dropping to a stacked wrap below the wide breakpoint: at
  * the wide anchor the canvas keeps the wide 16:9, and as the viewport
- * narrows the canvas grows taller, reaching square at the narrow
- * anchor and staying square below it. Both anchors are content-box
- * widths of this figure — the page container carries px-4 below sm
- * and px-6 from sm up — so 976 is the canvas at the 1024px viewport
- * where the old wrap used to start, and 358 the canvas at a 390px
- * viewport.
+ * narrows the canvas grows taller, reaching 1.2 — square plus a step,
+ * so the squarified layout lays the four electrified tiles side by
+ * side in a strip tall enough for their labels and fitted counts — at
+ * the narrow anchor, and holding there below it. Both anchors are
+ * content-box widths of this figure — the page container carries
+ * px-4 below sm and px-6 from sm up — so 976 is the canvas at the
+ * 1024px viewport where the old wrap used to start, and 358 the
+ * canvas at a 390px viewport.
  */
 const CANVAS_VIDEO_WIDTH_PX = 976;
 const CANVAS_SQUARE_WIDTH_PX = 358;
 /** The wide aspect ratio at and above the wide anchor. */
 const CANVAS_ASPECT_VIDEO = 9 / 16;
 /** The narrow aspect ratio at and below the narrow anchor. */
-const CANVAS_ASPECT_SQUARE = 1;
+const CANVAS_ASPECT_NARROW = 1.2;
 
 /**
  * Height-to-width ratio for a measured canvas width: 16:9 at and above
@@ -63,13 +110,13 @@ const CANVAS_ASPECT_SQUARE = 1;
  */
 function adaptiveCanvasAspect(canvasWidth: number): number {
   if (canvasWidth >= CANVAS_VIDEO_WIDTH_PX) return CANVAS_ASPECT_VIDEO;
-  if (canvasWidth <= CANVAS_SQUARE_WIDTH_PX) return CANVAS_ASPECT_SQUARE;
+  if (canvasWidth <= CANVAS_SQUARE_WIDTH_PX) return CANVAS_ASPECT_NARROW;
   const step =
     (CANVAS_VIDEO_WIDTH_PX - canvasWidth) /
     (CANVAS_VIDEO_WIDTH_PX - CANVAS_SQUARE_WIDTH_PX);
   return (
     CANVAS_ASPECT_VIDEO +
-    step * (CANVAS_ASPECT_SQUARE - CANVAS_ASPECT_VIDEO)
+    step * (CANVAS_ASPECT_NARROW - CANVAS_ASPECT_VIDEO)
   );
 }
 /** Count-up: short delay, then two seconds of slow-to-fast easing. */
@@ -175,15 +222,28 @@ function countSizeClass(share: number): string {
 }
 
 /**
- * One step below countSizeClass, for the narrowest canvases: below sm
- * the tiles are tighter, so the count and the share pill each drop
- * one size to breathe.
+ * Fitted count style for a tile whose share-tier count would run wider
+ * than the tile: the font shrinks until the full formatted number fits,
+ * with a line height in the same band as the tier classes. Returns
+ * undefined when the tier already fits, so the wide layout keeps the
+ * tier class untouched.
  */
-function compactCountSizeClass(share: number): string {
-  if (share > 0.5) return "text-5xl";
-  if (share > 0.07) return "text-3xl";
-  if (share > 0.05) return "text-2xl";
-  return "text-xl";
+function fittedCountStyle(
+  formattedCount: string,
+  tierPx: number,
+  countWidthPx: number,
+): CSSProperties | undefined {
+  const digits = [...formattedCount].filter((c) => c >= "0" && c <= "9")
+    .length;
+  const separators = formattedCount.length - digits;
+  const emWidth = digits * COUNT_DIGIT_EM + separators * COUNT_SEPARATOR_EM;
+  const fitPx = countWidthPx / emWidth;
+  if (fitPx >= tierPx) return undefined;
+  const fontPx = Math.max(MIN_FITTED_COUNT_PX, Math.floor(fitPx));
+  return {
+    fontSize: fontPx,
+    lineHeight: `${Math.round(fontPx * FITTED_COUNT_LINE_RATIO)}px`,
+  };
 }
 
 /**
@@ -238,14 +298,17 @@ function tileContext(tile: {
  * ResizeObserver fires. The canvas is adaptive rather than wrapped:
  * the squarified layout runs at every width, and the container's
  * aspect ratio grows continuously from the wide 16:9 at the old wrap
- * breakpoint to square at a 390px viewport — computed from the
- * measured container width, so tiles stay side by side and no width
- * rearranges them abruptly. Tiles too small for their content degrade
- * layer by layer — the icon chip, then the text — instead of
- * truncating or colliding; the tooltip and the figure's summary
- * aria-label always identify every category. Missing photos degrade
- * to a color-only tile, since the image is a plain CSS background
- * layer.
+ * breakpoint to 1.2 — square plus a step, tall enough for the
+ * electrified tiles' labels and counts in the squarified strip — at a
+ * 390px viewport, all computed from the measured container width, so
+ * tiles stay side by side and no width rearranges them abruptly.
+ * Every value stays readable and unclipped: a count shrinks to its
+ * tile's actual width instead of running past it, the share pill and
+ * the icon chip drop only when the tile is too short to stack them
+ * with the text, and a tile too small for text hides the layer
+ * entirely — its tooltip and the figure's summary aria-label always
+ * identify every category. Missing photos degrade to a color-only
+ * tile, since the image is a plain CSS background layer.
  *
  * Hovering or keyboard-focusing a tile opens the shared cursor tooltip
  * with the tile's figures and its context sentence. At rest the
@@ -360,6 +423,7 @@ export function FleetTreemap() {
         {rects.map((rect) => {
           const share = rect.count / withFuelData;
           const context = tileContext(rect);
+          const formattedCount = formatNumber(rect.count);
           const textWidth = rect.width - TILE_GAP_PX;
           const textHeight = rect.height - TILE_GAP_PX;
           const showText =
@@ -374,13 +438,39 @@ export function FleetTreemap() {
               : "100%";
 
           /*
+            Count fit: the share tier bounds the count, then the fitted
+            style shrinks it into the tile's actual width — clip-proof
+            from a 390px viewport up, invisible on the wide layout
+            where the tier always fits. The pill renders only when the
+            tile is tall enough for label, count and wrapped pill; the
+            chip only when its block clears the bottom-anchored text
+            above it.
+          */
+          const tierClass = countSizeClass(share);
+          const tierPx = COUNT_TIER_PX[tierClass];
+          const countStyle = fittedCountStyle(
+            formattedCount,
+            tierPx,
+            textWidth - 2 * (spacious ? SPACIOUS_COUNT_INSET_PX : COUNT_INSET_PX),
+          );
+          const countLinePx = Number(
+            countStyle?.fontSize ?? COUNT_TIER_LINE_PX[tierClass],
+          );
+          const labelCountPx = 2 * COUNT_INSET_PX + 15 + 4 + countLinePx;
+          const showPill = showText && textHeight >= MIN_PILL_TILE_HEIGHT_PX;
+          const showChip =
+            showIcons &&
+            showText &&
+            textHeight >= CHIP_CLEAR_PX + labelCountPx;
+
+          /*
             Responsive tile treatment, via sm: pairs: below sm the chip
             shrinks to 28px at the top-right of non-spacious tiles,
-            opposite the bottom-anchored text column, the count and
-            pill step one size down, and the text inset tightens to
-            p-1; from sm up every value is the current one.
+            opposite the bottom-anchored text column, the pill steps
+            one size down, and the text inset tightens to p-1; from sm
+            up every value is the current one. The count carries its
+            own fit style, so it keeps a single tier class.
           */
-          const countClass = `${compactCountSizeClass(share)} sm:${countSizeClass(share)}`;
           const pillClass = "text-xs sm:text-sm";
           const chipPadClass = "p-1 sm:p-2";
           const iconSizeClass = "h-5 w-5 sm:h-10 sm:w-10";
@@ -388,12 +478,16 @@ export function FleetTreemap() {
             ? "top-3 right-3 sm:top-4 sm:left-4 sm:right-auto"
             : "top-2 right-2 sm:left-2 sm:right-auto";
           const textPadClass = spacious ? "p-3 sm:p-4" : "p-1 sm:p-2";
-          const showChip = showIcons;
 
           const positionStyle: CSSProperties = measured
             ? {
-                left: rect.x + TILE_INSET_PX,
-                top: rect.y + TILE_INSET_PX,
+                // The clamp keeps a min-size tile inside the canvas
+                // when the squarify geometry parks its sub-pixel strip
+                // past the right or bottom edge — the fuel cell share
+                // is honest, but its tile must stay visible and
+                // focusable.
+                left: Math.min(rect.x, size.width - MIN_TILE_PX - 2 * TILE_INSET_PX),
+                top: Math.min(rect.y, (canvasHeight as number) - MIN_TILE_PX - 2 * TILE_INSET_PX),
                 width: Math.max(rect.width - TILE_GAP_PX, MIN_TILE_PX),
                 height: Math.max(rect.height - TILE_GAP_PX, MIN_TILE_PX),
               }
@@ -494,15 +588,22 @@ export function FleetTreemap() {
                         {rect.label}
                       </p>
                       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                        <p className={`font-bold tabular-nums ${countClass}`}>
-                          {formatNumber(Math.round(rect.count * countProgress))}
-                        </p>
-                        <span
-                          className={`rounded-full px-2 py-0.5 font-medium tabular-nums ${pillClass}`}
-                          style={{ backgroundColor: "var(--fleet-chip)" }}
+                        <p
+                          className={`font-bold tabular-nums ${tierClass}`}
+                          style={countStyle}
                         >
-                          {formatPercent(share)}
-                        </span>
+                          {formatNumber(
+                            Math.round(rect.count * countProgress),
+                          )}
+                        </p>
+                        {showPill ? (
+                          <span
+                            className={`rounded-full px-2 py-0.5 font-medium tabular-nums ${pillClass}`}
+                            style={{ backgroundColor: "var(--fleet-chip)" }}
+                          >
+                            {formatPercent(share)}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}
