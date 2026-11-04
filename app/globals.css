@@ -60,6 +60,19 @@
     about 4 to 1 against it.
   */
   --chart-track: #a9ced9;
+
+  /*
+    Splash canvas: the body paints the launcher's own splash gradient
+    (opendata.pixelate.nl, open-data-launcher app/globals.css,
+    --splash-base) per theme, so parent and product share one cover.
+    The gradient is viewport-anchored (background-attachment: fixed)
+    so it reads like the launcher's hero splash behind the whole page
+    instead of stretching its three dark stops across this much
+    longer document; on browsers that ignore fixed backgrounds the
+    gradient falls back to spanning the page, above the flat
+    --background color kept beneath it.
+  */
+  --body-splash: linear-gradient(180deg, #eaf6f9 0%, #d7ebf1 100%);
 }
 
 .dark {
@@ -98,6 +111,21 @@
 
   /* Bar track, light enough to read on the dark card; see :root. */
   --chart-track: #2a6572;
+
+  /*
+    Dark splash canvas: the launcher's dark-first brand gradient, its
+    exact stops (#48B9D1 over #0F353D into #051214). The bright teal
+    start sits behind the framed hero card at the top of the page; the
+    middle and terminal tones carry the rest of the viewport, so tiles
+    and text that rest on the theme's flat --background during their
+    audits keep those numbers in the zones where they scroll into
+    view. Every element that sits directly on the canvas keeps its
+    ratio: the footer and its links live in the terminal zone
+    (#051214, muted links 6.8 to 1), the outlined AI-insight border in
+    the middle zone (#0F353D, as audited), the light theme's near-
+    identical tints change nothing measurably.
+  */
+  --body-splash: linear-gradient(165deg, #48b9d1 0%, #0f353d 52%, #051214 100%);
 }
 
 /*
@@ -274,6 +302,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: var(--body-splash);
+    background-attachment: fixed;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
