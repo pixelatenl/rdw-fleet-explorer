@@ -143,7 +143,7 @@ export default function Home() {
           geometric max that keeps the two-line shape there — rising
           to a full 6rem at desktop), the heaviest weight the system
           sans stack offers, capitals have no descenders so the
-          leading squeezes to 0.95, the same tight -0.065em tracking
+          leading squeezes to 0.95, the same tight -0.055em tracking
           as the treemap counts, and an em-based
           max-width that keeps the two-line shape at every width — the
           line breaks after "IS THE" or "IS" by natural wrapping,
@@ -157,7 +157,7 @@ export default function Home() {
         <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
           Dutch open data
         </p>
-        <h1 className="max-w-[11em] text-[clamp(2.7rem,1.58rem+4.61vw,6rem)] font-black uppercase leading-[0.95] tracking-[-0.065em]">
+        <h1 className="max-w-[11em] text-[clamp(2.7rem,1.58rem+4.61vw,6rem)] font-black uppercase leading-[0.95] tracking-[-0.055em]">
           How <span className="text-(--drivetrain-bev)">electric</span>{" "}
           is the{" "}
           <span className="text-(--drivetrain-bev)">Dutch</span> fleet?
