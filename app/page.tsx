@@ -109,29 +109,8 @@ export default function Home() {
     { label: "Motorcycle", value: ferrari.motorcycle, accent: false },
   ];
 
-  const datasetJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Dataset",
-    name: "Dutch fleet aggregates from the RDW vehicle register",
-    description:
-      "How electric is the Dutch fleet? Live aggregates from the complete RDW vehicle register, refreshed weekly and visualized by Pixelate.",
-    url: "https://fleet.pixelate.nl",
-    isAccessibleForFree: true,
-    license: "https://creativecommons.org/publicdomain/zero/1.0/",
-    creator: {
-      "@type": "Organization",
-      name: "Pixelate BV",
-      url: "https://pixelate.nl",
-    },
-    dateModified: snapshot.retrievedAt,
-  };
-
   return (
     <div className="mx-auto max-w-[1536px] px-4 py-10 sm:px-6 sm:py-16">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }}
-      />
       <section className="mb-12">
         {/*
           Editorial cover, directly on the splash canvas — like the
