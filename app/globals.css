@@ -6,7 +6,12 @@
   Pixelate family theme, built on the shadcn/ui default token set.
   The neutral white surfaces of the shadcn default theme are replaced by
   the Pixelate green (#48B9D1) in two shades: a light tint for the light
-  theme, the dark pixelate.nl teal (#0F353D) for the dark theme.
+  theme, and for the dark theme the family hub's terminal canvas tone
+  (#051214), so parent (opendata.pixelate.nl) and product share one dark
+  canvas. The hub's own --background token is the dark pixelate.nl teal
+  (#0F353D), but its page paints --depth (#051214): the splash gradient
+  flows #48B9D1 over #0F353D into #051214, and the body then carries
+  that terminal tone to the bottom of the page.
   NOTE: these brand values are provisional until the exact brand colors
   are confirmed; they are isolated in this file for a one-place swap.
 */
@@ -20,7 +25,7 @@
     theme uses the darkened variant #A64B0C, because the brand orange
     #F48822 reaches only 2.27 to 1 on the light background; the darkened
     variant reaches 5.24 to 1 on light, and the brand orange itself
-    reaches 5.25 to 1 on the dark background. Both values keep normal
+    reaches 7.61 to 1 on the dark background. Both values keep normal
     text at WCAG AA, 4.5 to 1, in their theme.
   */
   --brand-accent: #A64B0C;
@@ -63,8 +68,15 @@
 }
 
 .dark {
-  /* Dark theme: dark pixelate.nl teal */
-  --background: #0f353d;
+  /* Dark theme canvas: the launcher's dark background is composed — a
+     splash gradient (#48B9D1 over #0F353D into #051214) whose
+     terminal, dominant base color #051214 then paints the rest of the
+     page — so this token takes that dominant base exactly, keeping
+     one shared family canvas. Darkening the canvas only widens every
+     page-background contrast pair: foreground 17.2 to 1, muted
+     foreground 9.8 to 1, the orange brand accent 7.6 to 1, and the
+     card surface reads more clearly at 1.7 to 1. */
+  --background: #051214;
   --foreground: #e9f6f9;
   --card: #14414c;
   --card-foreground: #e9f6f9;
@@ -82,7 +94,7 @@
   --input: #225662;
   --ring: #48b9d1;
 
-  /* Brand accent orange at full brand value, 5.25 to 1 on the dark
+  /* Brand accent orange at full brand value, 7.61 to 1 on the dark
      background; see the :root block for the contrast rationale. */
   --brand-accent: #F48822;
 
@@ -115,9 +127,11 @@
   themes. Battery electric takes the family orange, full hybrid the
   violet, plug-in hybrid the brand teal and fuel cell the rose.
   Contrast audit (3 to 1 minimum against the theme's surfaces, light
-  page #eaf6f9 / card #f6fbfc, dark #0f353d / #14414c): light bev 3.4
-  to 1, hev 4.8 to 1, phev 3.3 to 1, fchv 5.1 to 1; dark bev 5.3 to 1,
-  hev 4.5 to 1, phev 4.8 to 1, fchv 4.4 to 1. The light plug-in teal is
+  page #eaf6f9 / card #f6fbfc, dark #051214 / #14414c): light bev 3.4
+  to 1, hev 4.8 to 1, phev 3.3 to 1, fchv 5.1 to 1; dark bev 4.4 to 1,
+  hev 3.8 to 1, phev 4.8 to 1, fchv 3.7 to 1, each the minimum of the
+  pair — the darker family canvas widens every page-background pair
+  while the card side is unchanged. The light plug-in teal is
   darkened from the brand #48b9d1, which reaches only 2.1 to 1 on the
   light surfaces, to #2e91a9 (3.3 to 1) while keeping the teal hue. The
   orange and rose pair reaches only 1.5 to 1 (light) and 1.2 to 1
