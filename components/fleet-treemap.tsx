@@ -401,7 +401,7 @@ export function FleetTreemap() {
   return (
     <figure>
       <figcaption className="mb-3">
-        <span className="block text-lg font-semibold text-primary dark:text-white">
+        <span className="block text-2xl font-extrabold leading-tight tracking-tight text-primary sm:text-3xl dark:text-white">
           Vehicles by drivetrain, sized by count, of the{" "}
           {formatNumber(withFuelData)} with fuel data.
         </span>
