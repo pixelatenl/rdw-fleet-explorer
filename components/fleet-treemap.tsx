@@ -410,7 +410,7 @@ export function FleetTreemap() {
           Vehicles by drivetrain, sized by count, of the{" "}
           {formatNumber(withFuelData)} with fuel data.
         </span>
-        <span className="mt-1 block text-sm text-muted-foreground">
+        <span className="mt-1 block text-base leading-relaxed text-muted-foreground sm:text-lg">
           Hybrid drivetrains are grouped by their recorded hybrid class.
         </span>
       </figcaption>
