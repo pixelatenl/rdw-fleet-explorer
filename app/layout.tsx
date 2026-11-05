@@ -171,7 +171,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <FamilyHeader />
           <main className="flex-1">{children}</main>
-          <FamilyFooter extra={<MethodDrawer />} />
+          <FamilyFooter extra={<MethodDrawer />} disclaimerPath="/disclaimer" />
         </div>
       </body>
     </html>

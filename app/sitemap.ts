@@ -12,5 +12,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: `${FAMILY.siteUrl}/disclaimer`,
+      lastModified: new Date(snapshot.retrievedAt),
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
   ];
 }
