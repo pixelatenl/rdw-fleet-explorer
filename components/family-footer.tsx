@@ -13,15 +13,15 @@ const footerLink = "text-muted-foreground underline underline-offset-4 hover:tex
  * hub), the credits (data attribution) and the colophon (source and
  * organization links). The optional extra prop lets a product slot a
  * link into the colophon, after the repository and organization links.
- * The optional disclaimerPath props in a Disclaimer link next to the
- * attribution; products without the page omit it and render as before.
+ * The optional disclaimer prop seats the Disclaimer drawer in the same
+ * group; products without one render as before.
  */
 export function FamilyFooter({
   extra,
-  disclaimerPath,
+  disclaimer,
 }: {
   extra?: React.ReactNode;
-  disclaimerPath?: string;
+  disclaimer?: React.ReactNode;
 }) {
   return (
     <footer className="border-t border-border bg-background">
@@ -67,11 +67,6 @@ export function FamilyFooter({
                   the register state at the retrieval date.
                 </p>
               </div>
-              {disclaimerPath && (
-                <Link href={disclaimerPath} className={`mt-2 block ${footerLink}`}>
-                  Disclaimer
-                </Link>
-              )}
             </div>
             <div className="max-w-xl lg:border-l lg:border-border lg:pl-10">
               <p className={zoneLabel}>Colophon</p>
@@ -82,6 +77,7 @@ export function FamilyFooter({
                 <Link href={FAMILY.organizationUrl} className={footerLink}>
                   {FAMILY.organization}
                 </Link>
+                {disclaimer}
                 {extra}
               </div>
             </div>
