@@ -3,6 +3,7 @@ import "./globals.css";
 import { FamilyHeader } from "@/components/family-header";
 import { FamilyFooter } from "@/components/family-footer";
 import { MethodDrawer } from "@/components/method-drawer";
+import { DisclaimerDrawer } from "@/components/disclaimer-drawer";
 import { FAMILY } from "@/family";
 import {
   snapshot,
@@ -171,7 +172,10 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <FamilyHeader />
           <main className="flex-1">{children}</main>
-          <FamilyFooter extra={<MethodDrawer />} />
+          <FamilyFooter
+            extra={<MethodDrawer />}
+            disclaimer={<DisclaimerDrawer />}
+          />
         </div>
       </body>
     </html>

@@ -9,14 +9,20 @@ const zoneLabel = "text-xs font-semibold tracking-widest text-muted-foreground u
 const footerLink = "text-muted-foreground underline underline-offset-4 hover:text-foreground";
 
 /**
- * Shared family footer with the back link to the launcher hub and the
- * data attribution. Present on every product site in the family.
  * Three zones: the signature (product name, anchored to the launcher
  * hub), the credits (data attribution) and the colophon (source and
  * organization links). The optional extra prop lets a product slot a
  * link into the colophon, after the repository and organization links.
+ * The optional disclaimer prop seats the Disclaimer drawer in the same
+ * group; products without one render as before.
  */
-export function FamilyFooter({ extra }: { extra?: React.ReactNode }) {
+export function FamilyFooter({
+  extra,
+  disclaimer,
+}: {
+  extra?: React.ReactNode;
+  disclaimer?: React.ReactNode;
+}) {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-[1536px] px-4 py-10 sm:px-6 lg:py-12">
@@ -71,6 +77,7 @@ export function FamilyFooter({ extra }: { extra?: React.ReactNode }) {
                 <Link href={FAMILY.organizationUrl} className={footerLink}>
                   {FAMILY.organization}
                 </Link>
+                {disclaimer}
                 {extra}
               </div>
             </div>
