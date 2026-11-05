@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FAMILY } from "@/family";
 import { FamilyLogo } from "@/components/family-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 /**
  * Shared family header, present on every product site in the family.
@@ -26,7 +26,7 @@ export function FamilyHeader() {
           </span>
         </div>
         <nav className="flex items-center gap-1" aria-label="Site">
-          <ThemeToggle />
+          <ThemeSwitcher />
         </nav>
       </div>
     </header>
