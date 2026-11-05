@@ -5,6 +5,7 @@ import { FamilyFooter } from "@/components/family-footer";
 import { MethodDrawer } from "@/components/method-drawer";
 import { DisclaimerDrawer } from "@/components/disclaimer-drawer";
 import { FAMILY } from "@/family";
+import { themeInitScript } from "@/theme";
 import {
   snapshot,
   electricShareOfFuelVehicles,
@@ -137,20 +138,6 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: dark)", color: "#0f353d" },
   ],
 };
-
-/*
-  Applies the persisted theme before first paint to avoid a flash of the
-  wrong theme. Defaults to the operating system preference.
-*/
-const themeInitScript = `
-(function () {
-  try {
-    var stored = localStorage.getItem("pixelate-theme");
-    var dark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.documentElement.classList.toggle("dark", dark);
-  } catch (e) {}
-})();
-`;
 
 export default function RootLayout({
   children,
