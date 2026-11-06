@@ -113,15 +113,14 @@ export default function Home() {
           Editorial cover, directly on the splash canvas — like the
           launcher's own hero, whose headline sits over the splash's
           dark zones while the bright teal stays an accent. The
-          question is the display heading, shouted in capitals: fluid
-          clamp sizing (about 2.7rem at a 390px viewport — the
-          geometric max that keeps the two-line shape there — rising
-          to a full 6rem at desktop), the heaviest weight the system
-          sans stack offers, capitals have no descenders so the
-          leading squeezes to 0.95, the same tight -0.055em tracking
-          as the treemap counts, and an em-based
-          max-width that keeps the two-line shape at every width — the
-          line breaks after "IS THE" or "IS" by natural wrapping,
+          question is the display heading, set in sentence case exactly
+          as written: fluid clamp sizing (about 2.4rem at a 390px
+          viewport, rising to 4.5rem at desktop), the heaviest weight
+          the system sans stack offers, sentence case carries
+          descenders so the leading relaxes to 1.05, the tracking
+          eases to -0.03em, and an em-based
+          max-width that keeps the shape at every width — the
+          line breaks by natural wrapping,
           never a hard <br>. The accented words take the
           theme-adaptive battery-electric orange (--drivetrain-bev:
           3.4 to 1 on the light canvas, 5.3 to 1 on the dark), the
@@ -132,7 +131,7 @@ export default function Home() {
         <p className="mb-3 text-sm font-medium tracking-wide text-primary uppercase">
           Dutch open data
         </p>
-        <h1 className="max-w-[11em] text-[clamp(2.7rem,1.58rem+4.61vw,6rem)] font-black uppercase leading-[0.95] tracking-[-0.055em]">
+        <h1 className="max-w-[11em] text-[clamp(2.4rem,1.69rem+2.93vw,4.5rem)] font-black leading-[1.05] tracking-[-0.03em]">
           How <span className="text-(--drivetrain-bev)">electric</span>{" "}
           is the{" "}
           <span className="text-(--drivetrain-bev)">Dutch</span> fleet?
